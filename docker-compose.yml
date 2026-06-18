@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  # Redis service used for Socket.io adapter scaling and general cache
+  redis:
+    image: redis:7-alpine
+    container_name: hiveos-redis
+    ports:
+      - "6379:6379"
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Realtime Socket.io server
+  realtime-server:
+    build:
+      context: ./realtime-server
+      dockerfile: Dockerfile
+    container_name: hiveos-realtime-server
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+
+  # Next.js web application
+  hiveos-app:
+    build:
+      context: ./hiveos-app
+      dockerfile: Dockerfile
+    container_name: hiveos-app
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URI=${MONGODB_URI}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=http://localhost:3000
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - NEXT_PUBLIC_SOCKET_URL=http://localhost:3002
+    depends_on:
+      redis:
+        condition: service_healthy
+      realtime-server:
+        condition: service_started
+    restart: always

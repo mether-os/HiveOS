@@ -1,0 +1,50 @@
+"use client";
+
+/**
+ * components/providers/Providers.tsx — Client-side Provider Tree
+ *
+ * Purpose: Wraps the entire application in all required React context providers.
+ * Centralizing providers here keeps the root layout clean.
+ *
+ * Why "use client"? React Query's QueryClientProvider and the auth session
+ * hook are client-side. The root layout.tsx is a server component, so we
+ * move the client boundary here.
+ *
+ * Provider order matters:
+ * 1. QueryClientProvider — innermost providers can use useQuery
+ * 2. ReactQueryDevtools — only rendered in development
+ *
+ * Future additions to this tree:
+ * - Zustand store initialization (if global hydration needed)
+ * - Toast provider (for notifications)
+ * - Socket.io context (Phase 2)
+ *
+ * Interactions:
+ * - Imported by: app/layout.tsx (wraps entire page tree)
+ * - Provides context to: ALL client components in the app
+ */
+
+import { getQueryClient } from "@/lib/query-client";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { type ReactNode } from "react";
+import { RealtimeProvider } from "@/features/realtime/hooks/useSocket";
+
+interface ProvidersProps {
+  children: ReactNode;
+}
+
+export function Providers({ children }: ProvidersProps) {
+  // getQueryClient() returns the browser singleton or creates a new server client
+  const queryClient = getQueryClient();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RealtimeProvider>
+        {children}
+      </RealtimeProvider>
+      {/* DevTools only appear in development, zero-cost in production */}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  );
+}

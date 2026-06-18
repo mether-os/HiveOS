@@ -1,0 +1,320 @@
+/**
+ * HiveOS — Design System & Global Styles
+ *
+ * Theme: Obsidian Dark with Champagne Gold & Indigo accents
+ * Typography: Outfit (headings), Plus Jakarta Sans (body), JetBrains Mono (code only)
+ * Fonts loaded via <link> tags in layout.tsx for non-blocking rendering.
+ * Tailwind CSS v4
+ */
+
+@import "tailwindcss";
+
+/* ============================================================================
+   TAILWIND v4 THEME — Design Tokens
+   ============================================================================ */
+
+@theme {
+  /* Typography */
+  --font-display: "Outfit", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-brand: "Space Grotesk", "Outfit", system-ui, sans-serif;
+
+  /* Core Palette */
+  --color-background: #020408;
+  --color-foreground: #f0f4f8;
+
+  --color-surface: #060b13;
+  --color-surface-elevated: #0a111c;
+  --color-surface-container: #111a2e;
+  --color-surface-variant: #18253f;
+
+  /* Brand */
+  --color-primary: #f5a623;
+  --color-primary-hover: #e09415;
+  --color-primary-glow: rgba(245, 166, 35, 0.12);
+  --color-on-primary: #020408;
+
+  --color-accent: #6366f1;
+  --color-accent-hover: #4f46e5;
+  --color-accent-glow: rgba(99, 102, 241, 0.18);
+  --color-accent-subtle: rgba(99, 102, 241, 0.05);
+
+  /* Semantic */
+  --color-success: #10b981;
+  --color-success-subtle: rgba(16, 185, 129, 0.08);
+  --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.08);
+  --color-error: #f43f5e;
+  --color-error-subtle: rgba(244, 63, 94, 0.08);
+
+  /* Borders */
+  --color-border: #131d30;
+  --color-border-subtle: rgba(19, 29, 48, 0.5);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Timing */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 350ms;
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================================
+   CSS VARIABLES — shadcn/ui compatibility layer
+   ============================================================================ */
+
+:root {
+  color-scheme: dark;
+  --radius: 0.75rem;
+
+  /* shadcn token mappings */
+  --background: #020408;
+  --foreground: #f0f4f8;
+
+  --card: #060b13;
+  --card-foreground: #f0f4f8;
+
+  --popover: #0a111c;
+  --popover-foreground: #f0f4f8;
+
+  --primary: #f5a623;
+  --primary-foreground: #020408;
+
+  --secondary: #111a2e;
+  --secondary-foreground: #f0f4f8;
+
+  --muted: #0c1524;
+  --muted-foreground: #94a3b8;
+
+  --accent: #6366f1;
+  --accent-foreground: #f0f4f8;
+
+  --destructive: #f43f5e;
+  --border: #131d30;
+  --input: #111a2e;
+  --ring: #f5a623;
+}
+
+/* ============================================================================
+   BASE RESET
+   ============================================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+  background-color: var(--background);
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+}
+
+/* ============================================================================
+   SCROLLBARS
+   ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #18253f;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
+}
+
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: #ffffff;
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-5px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.35);
+    border-color: rgba(99, 102, 241, 0.5);
+  }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-accent {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-fade-up { animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-pulse-accent { animation: pulse-accent 2s ease-in-out infinite; }
+
+.shimmer-text {
+  background: linear-gradient(90deg, #f5a623, #ffffff, #6366f1, #f5a623);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 5s linear infinite;
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(99, 102, 241, 0.08) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+.glass-panel {
+  background: rgba(6, 11, 19, 0.85);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.65);
+  transition: border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 15px 45px rgba(99, 102, 241, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Typography helpers — for inline-style replacement */
+.font-display { font-family: "Outfit", system-ui, sans-serif; }
+.font-brand  { font-family: "Space Grotesk", "Outfit", system-ui, sans-serif; }
+
+/* ============================================================================
+   REACT FLOW OVERRIDES
+   ============================================================================ */
+
+.react-flow__background {
+  background-color: var(--background);
+}
+
+.react-flow__controls {
+  bottom: 20px !important;
+  left: 20px !important;
+  background: var(--popover) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6) !important;
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--muted-foreground) !important;
+  fill: currentColor !important;
+  padding: 8px !important;
+  transition: all 100ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--secondary) !important;
+  color: var(--accent) !important;
+}
+
+.react-flow__edge-path {
+  stroke: rgba(99, 102, 241, 0.25);
+  stroke-width: 1.5;
+  transition: stroke 100ms, stroke-width 100ms;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--accent) !important;
+  stroke-width: 2.5;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: rgba(99, 102, 241, 0.6) !important;
+  stroke-width: 2.0;
+}
+
+.react-flow__node {
+  border-radius: 14px !important;
+  transition: box-shadow 100ms;
+}
+
+.react-flow__node.selected {
+  box-shadow: 0 0 0 2px var(--accent), 0 0 20px rgba(99, 102, 241, 0.25) !important;
+}
+
+.react-flow__handle {
+  width: 8px !important;
+  height: 8px !important;
+  background: var(--background) !important;
+  border: 2px solid var(--accent) !important;
+  transition: background 100ms, transform 100ms;
+}
+
+.react-flow__handle:hover {
+  background: var(--accent) !important;
+  transform: scale(1.25);
+}
