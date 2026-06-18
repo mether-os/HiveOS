@@ -239,7 +239,6 @@ export default function NetworkPage() {
               fitViewOptions={{ padding: 0.15 }}
               minZoom={0.5}
               maxZoom={1.5}
-              proOptions={{ hideAttribution: true }}
             >
               <Background color="#5f5af6" gap={32} size={1} style={{ opacity: 0.08 }} />
               <Controls className="react-flow__controls" showInteractive={false} />

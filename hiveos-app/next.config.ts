@@ -14,7 +14,6 @@ const nextConfig: NextConfig = {
   // Strict mode for React 19 — catches double-render bugs in dev
   // ---------------------------------------------------------------------------
   reactStrictMode: true,
-  output: "standalone",
 
   // ---------------------------------------------------------------------------
   // Image optimization — allowed external domains for next/image
@@ -73,17 +72,13 @@ const nextConfig: NextConfig = {
   },
 
   // ---------------------------------------------------------------------------
-  // Performance: Let Next.js use all available CPU cores (default behavior).
-  // Previously set to cpus: 1 which caused severe lag during development.
-  // ---------------------------------------------------------------------------
-  // ---------------------------------------------------------------------------
-  // Performance: Limit build workers to 2 to prevent OOM on dev laptops.
-  // Unlimited workers crash Windows with STATUS_STACK_BUFFER_OVERRUN (0xC0000409)
-  // when each worker spawns MongoDB + Redis connections simultaneously.
+  // Performance: Use React Compiler for automatic memoization (if available)
   // ---------------------------------------------------------------------------
   experimental: {
+    // Enable React Compiler for automatic useMemo/useCallback
+    reactCompiler: true,
+    // Keep workerThreads disabled (crashes on Windows with Redis/Mongo)
     workerThreads: false,
-    cpus: 2,
   },
 
   // ---------------------------------------------------------------------------
@@ -92,6 +87,17 @@ const nextConfig: NextConfig = {
   // ---------------------------------------------------------------------------
   eslint: {
     ignoreDuringBuilds: true,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Optimize bundling
+  // ---------------------------------------------------------------------------
+  webpack: (config, { defaultLoaders }) => {
+    // Add source maps for better debugging in production
+    if (process.env.NODE_ENV === 'production') {
+      config.devtool = 'source-map'
+    }
+    return config
   },
 };
 

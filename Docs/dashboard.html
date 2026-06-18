@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HiveOS - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&family=Space+Grotesk:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hive-card-hover:hover {
+            box-shadow: 0 0 20px rgba(245, 166, 35, 0.15);
+            border-color: rgba(245, 166, 35, 0.4);
+        }
+        .presence-breathe {
+            animation: breathe 3s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        body {
+            background-color: #080A0F;
+            color: #eee0d2;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001e2c",
+                        "surface-bright": "#40382e",
+                        "on-secondary-fixed-variant": "#004395",
+                        "tertiary-container": "#3ac2ff",
+                        "on-primary": "#452b00",
+                        "surface-variant": "#3c332a",
+                        "surface-tint": "#ffb955",
+                        "on-surface-variant": "#d7c3ae",
+                        "surface": "#19120a",
+                        "on-secondary-container": "#e6ecff",
+                        "inverse-primary": "#835500",
+                        "tertiary-fixed-dim": "#7cd0ff",
+                        "secondary": "#adc6ff",
+                        "background": "#19120a",
+                        "on-surface": "#eee0d2",
+                        "surface-container-highest": "#3c332a",
+                        "outline": "#9f8e7a",
+                        "on-primary-container": "#644000",
+                        "tertiary-fixed": "#c4e7ff",
+                        "on-tertiary": "#00344a",
+                        "surface-container-lowest": "#130d06",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "on-tertiary-container": "#004d6a",
+                        "surface-dim": "#19120a",
+                        "primary-fixed-dim": "#ffb955",
+                        "primary": "#ffc880",
+                        "surface-container-high": "#302920",
+                        "on-primary-fixed-variant": "#633f00",
+                        "outline-variant": "#524534",
+                        "on-error": "#690005",
+                        "primary-fixed": "#ffddb4",
+                        "on-primary-fixed": "#291800",
+                        "on-background": "#eee0d2",
+                        "primary-container": "#f5a623",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#0566d9",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary": "#002e6a",
+                        "tertiary": "#9bd9ff",
+                        "inverse-on-surface": "#372f26",
+                        "secondary-fixed": "#d8e2ff",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "surface-container-low": "#211a12",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed": "#001a42",
+                        "inverse-surface": "#eee0d2",
+                        "surface-container": "#251e16"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "unit": "8px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "container-margin": "40px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "code-md": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Space Grotesk"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Space Grotesk"],
+                        "label-caps": ["JetBrains Mono"],
+                        "headline-lg": ["Space Grotesk"],
+                        "body-lg": ["Inter"],
+                        "headline-xl": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "code-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-xl": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- TopAppBar Shell -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-md h-16 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-outline-variant">
+<div class="flex items-center gap-xl">
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tighter">HiveOS</span>
+<div class="hidden md:flex items-center gap-lg">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-caps text-label-caps" href="#">Hives</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-label-caps text-label-caps" href="#">Network</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-label-caps text-label-caps" href="#">Terminal</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden sm:flex items-center bg-surface-container rounded-lg px-sm py-xs border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md placeholder-on-surface-variant/50 w-48" placeholder="Jump to..." type="text"/>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant cursor-pointer active:scale-95 transition-transform">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant cursor-pointer active:scale-95 transition-transform">help</button>
+<div class="w-8 h-8 rounded-full border border-primary/30 overflow-hidden relative">
+<img alt="User avatar with amber presence dot" class="w-full h-full object-cover" data-alt="A close-up professional profile portrait of a futuristic digital architect with subtle bioluminescent accents on their skin. The lighting is cold and atmospheric, dominated by deep blues and blacks with a single warm amber glow reflecting in their eyes. The style is hyper-realistic and high-tech, fitting for a deep-space infrastructure OS interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFXwshggzOFh5apInKV1c7WzRLlgnQ6wdEST9U43y4284-NFXixIvEOSPVIQ_4EVXpACW8-abFnZbd5CSQwvPNXOKdIeNoeMCtSE7jSRg8Rrh9hr8t-rcGGx70-ukqvpWh-YtFUiXoe_zRIHr-aaXRHnM7RkmxioNnURpHHcM9G2tlNbIXHD3LvJ0bbNlQLNo_7W37KD11bLi6BT9OvD2gY_YNLqYhY1UivjrrRspzTBnGg5ptStduL-RagwaZPduarLrIbOyf2is"/>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-primary rounded-full border-2 border-surface presence-breathe"></div>
+</div>
+</div>
+</nav>
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] z-40 flex flex-col py-md bg-surface-container dark:bg-surface-container border-r border-outline-variant w-[280px] hidden md:flex">
+<div class="px-md mb-xl flex flex-col gap-xs">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+</div>
+<div>
+<h2 class="font-headline-md text-[18px] text-primary leading-tight">Core_Hive</h2>
+<p class="font-label-caps text-[10px] text-on-surface-variant">Active: 12 members</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-xs overflow-y-auto">
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">dashboard_customize</span>
+<span class="font-label-caps text-label-caps">Canvas</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">view_kanban</span>
+<span class="font-label-caps text-label-caps">Tasks</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-caps text-label-caps">Docs</span>
+</a>
+<a class="flex items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg p-sm mx-xs transition-all duration-200 cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-label-caps text-label-caps">Hives</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-md px-xs">
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+<span class="font-label-caps text-label-caps">Support</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-label-caps text-label-caps">Profile</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="md:ml-[280px] pt-16 min-h-screen">
+<div class="max-w-[900px] mx-auto px-md py-xl">
+<!-- Section Header -->
+<header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md mb-xl">
+<div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface">Your Hives</h1>
+<p class="text-on-surface-variant font-body-md mt-xs">Orchestrate and monitor your active collaborative nodes.</p>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary-fixed font-bold py-sm px-lg rounded-lg flex items-center gap-sm transition-all active:scale-95">
+<span class="material-symbols-outlined font-bold">add</span>
+<span class="font-label-caps text-label-caps">New Hive</span>
+</button>
+</header>
+<!-- Hive Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Card 1 -->
+<div class="group relative bg-[#0E1117] border border-[#1E2533] p-lg rounded-xl hive-card-hover transition-all duration-300">
+<div class="flex justify-between items-start mb-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">rocket_launch</span>
+</div>
+<span class="px-sm py-xs bg-primary text-on-primary-fixed text-[10px] font-bold font-label-caps rounded uppercase">Needs Attention</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-primary mb-xs">Project_Ares</h3>
+<p class="text-on-surface-variant text-body-md mb-lg">Next-gen propulsion telemetry dashboard for deep-space probes.</p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-[#0E1117] bg-surface-container overflow-hidden">
+<img alt="Avatar" data-alt="A highly detailed close-up of a digital human avatar in a dark tech environment. The avatar has a minimal, professional aesthetic with sharp features and is illuminated by a soft, amber key light against a deep space background. The composition emphasizes technical precision and modern digital design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgwwe2EBt5aQlGhuYBSipv_P4qbnQI0plKrTPvUsCR8xvwpmaCszZvMweM_ZkDxwJN1Oim0wo7zrEGYwkQ4x9r3u3ZR9U5CyZwWrc45EB3D4Di6Ei1bEY7-pXoZG0zBiAe7mCvW83xVkx1EC8ZYlOTL_M3k1epPvHJShaP13EnHEzpFsWUaLKJ4I5IU_0gPUxNnrIAUyyM89-yb_byt3kUX60JY6hLUmTATdzXMXKtOr6GNte4YBTu5pzcpKLzrq9hVTAgVzb4fQ4"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-[#0E1117] bg-surface-container overflow-hidden">
+<img alt="Avatar" data-alt="A portrait of a futuristic collaborator with glowing geometric patterns subtly integrated into their clothing. The background is a dimly lit high-tech control room with faint amber and blue interface glows. The mood is focused and professional, rendered in a crisp, cinematic digital art style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDebkpa-hZ6OXR6-Z9atlz_4mWIqThgYEef_tDISZam3KwCCQwxJ5G_8NXhHPtd2QliTU8R7q691D8Z36DpIy1XuHxCEqXO3Kk0zCud4zep-WpP9a71B_AWh5FM1TqEx3n5YpDTaqC0DLeZfeMt8UgoOTTiROxOz0bUiMxuhknqvCaBWpL2WbDCRER78DkvvfEpJQ-41bXqUVqUznucuiJh02eZNW41msjl3lAiZ_G5cwnGfQDdyfB6aNw6YuiASNOvl4cyc87plm4"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-[#0E1117] bg-surface-container overflow-hidden">
+<img alt="Avatar" data-alt="An abstract representation of an AI entity's digital presence, characterized by a clean, minimalist face with glowing amber data streams as features. The environment is a vast, dark digital void. The image has a polished, modern tech aesthetic with high contrast and sharp details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfQwBfQc9mIjI1GLyrpEAYPKUGqBcv7vj5UdHnKmWGFgSweV8-1AQQFkBPmbZ2NNPfai-dSlONcwCwijSdwLtAUc3TrnJlNhdnkglgiPCGrnwH0w8_thK1kHPYJAetxR3cqlBk_kc3j6Wk3fItHj7Wy3n5OR2x7AdlAtPXW2MTW3BP92Xjuh0al0NfP0WBJ9ZAWs2BBo9DgTmGeTyCgUs1DJBzFiCiXEkydTfTHm0CdqVysVGpyx-KqNA4vNMjI-2VrXASlmsZyfA"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-[#0E1117] bg-surface-container-high flex items-center justify-center">
+<span class="text-[10px] font-bold text-on-surface-variant">+9</span>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-label-caps text-on-surface-variant/60 uppercase">Last Sync</p>
+<p class="text-code-md font-code-md text-on-surface-variant">2m ago</p>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative bg-[#0E1117] border border-[#1E2533] p-lg rounded-xl hive-card-hover transition-all duration-300">
+<div class="flex justify-between items-start mb-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[28px]">biotech</span>
+</div>
+<span class="px-sm py-xs bg-surface-container-highest text-on-surface-variant text-[10px] font-bold font-label-caps rounded uppercase">Active</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Bio_Sync_v2</h3>
+<p class="text-on-surface-variant text-body-md mb-lg">Synthesizing organic growth patterns for regenerative base modules.</p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-[#0E1117] bg-surface-container overflow-hidden">
+<img alt="Avatar" data-alt="A digital portrait of a high-tech scientist in a dark, atmospheric laboratory. The lighting is dominated by cool blue tones with sharp amber highlights reflecting off glass surfaces. The style is detailed and cinematic, emphasizing a serious and advanced technological atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxLwIoknO9y7vXZSjB3b3LSkWhqOVGTdTMSwLTmpz01TSTkXh8Ai_Bw_v-9AzcI17ZMg8rkyqwZm0Kmq6wn-NiWDOImWsVN7HHbwjyXkWI-wXIjZdEIcyA3o3ouFMC2jYKajUweiWhfeYk2Jm1KOMHj17BfOmDBznKLqzte2JgmP80xJthAmmRmCgxmItgGuN-jjIAi-Ks8DUrntDhN4vUIybdj-UqERj6_wSlZw3m8Xn-s0COxwLfPQaht1a-4I4PrKUN97lmMJM"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-[#0E1117] bg-surface-container overflow-hidden">
+<img alt="Avatar" data-alt="A futuristic character profile with sleek, dark apparel and a high-tech headset that emits a soft amber glow. The setting is a minimalist, dark interior with subtle architectural lighting. The overall aesthetic is one of modern technical minimalism and professional collaboration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyJHGx_-ZlJlISIN2XoWIDz9DC_MIxxEDC82PNmczHXBhCZ6NGlWrE-kng5y0vibzuH5TFJNA8CgI20VRW240YNRCBB5xnVOCWutcrcM6_RGguuXtkSJKLUXATBj77ofE1FatT1g06Tr62VvxSHDLmyHY3-5E1FdlISN6XEKUQVjWe9uxFDmU9BQJUAObvuAOcLBmZqo7BlSi8q81MdzDIYFIfV99kpkp-eXV6ydHQusScsl0gHuRhhmphJPaymXzup0aRvDAxwwY"/>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-label-caps text-on-surface-variant/60 uppercase">Last Sync</p>
+<p class="text-code-md font-code-md text-on-surface-variant">14m ago</p>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative bg-[#0E1117] border border-[#1E2533] p-lg rounded-xl hive-card-hover transition-all duration-300">
+<div class="flex justify-between items-start mb-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high border border-outline-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[28px]">terminal</span>
+</div>
+<span class="px-sm py-xs bg-surface-container-low text-on-surface-variant/50 text-[10px] font-bold font-label-caps rounded uppercase">Idle</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Kernel_Core</h3>
+<p class="text-on-surface-variant text-body-md mb-lg">Low-level infrastructure optimization for the Hive network backbone.</p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-[#0E1117] bg-surface-container overflow-hidden">
+<img alt="Avatar" data-alt="A portrait of a systems engineer in a dark, data-heavy environment. Multiple screens cast a dim, monochromatic light on their face, punctuated by a single orange status light on their gear. The style is realistic, high-fidelity, and captures a mood of quiet technical focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDC0Bf9UQW7T_4_BLTW_eId86BIfnut1_z9tH7xP7GvQFOgSXT2o7fkAP-mfHjuntz4LexJ91ZeEy_r7BAL_1LyRgbGQFziwKc_xe5GuT1Ic1BHI3WqnSit4U3Ny11_3mTZmAGXM4YQGemCmJioUo1WEP92Mw9R4M9B5Cc8Dy7_lFLdAfEA6gPxC2rwbrS4AYC4zhtQu6PtkafWVkZ5CSKZL6SmshJiBsk2ei4Io1ew_RBxmOVJoWTPsThNq0DzD6xf8C_leDfBzhc"/>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-label-caps text-on-surface-variant/60 uppercase">Last Sync</p>
+<p class="text-code-md font-code-md text-on-surface-variant">2h ago</p>
+</div>
+</div>
+</div>
+<!-- Card 4 (Empty/Add State) -->
+<div class="group flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 p-lg rounded-xl transition-all cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-surface-variant/30 flex items-center justify-center text-on-surface-variant group-hover:text-primary mb-md transition-colors">
+<span class="material-symbols-outlined text-[32px]">add_circle</span>
+</div>
+<p class="font-headline-md text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">Initialize Hive</p>
+<p class="text-on-surface-variant/60 text-[12px] text-center font-label-caps mt-xs">Allocate new system resources</p>
+</div>
+</div>
+<!-- AI Activity Log Section (Bento Grid Style) -->
+<section class="mt-xl grid grid-cols-1 md:grid-cols-3 gap-md">
+<div class="md:col-span-2 bg-[#0E1117] border border-[#1E2533] p-md rounded-xl">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-2 h-2 bg-primary rounded-full presence-breathe"></div>
+<h4 class="font-label-caps text-label-caps text-primary uppercase">Active Cognition</h4>
+</div>
+<div class="space-y-sm">
+<div class="flex items-center justify-between p-sm bg-surface-container/30 rounded border border-outline-variant/30">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-[18px]">memory</span>
+<span class="font-code-md text-code-md">Ares_Compute: Optimizing trajectory data...</span>
+</div>
+<span class="font-code-md text-on-surface-variant/60 text-[12px]">88%</span>
+</div>
+<div class="flex items-center justify-between p-sm bg-surface-container/30 rounded border border-outline-variant/30">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary text-[18px]">hub</span>
+<span class="font-code-md text-code-md">Bio_Sync: Mapping neural-lattice growth.</span>
+</div>
+<span class="font-code-md text-on-surface-variant/60 text-[12px]">Active</span>
+</div>
+</div>
+</div>
+<div class="bg-primary/5 border border-primary/20 p-md rounded-xl flex flex-col justify-between">
+<div>
+<h4 class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-sm">Hive Load</h4>
+<div class="text-headline-lg font-headline-lg text-primary">64.2<span class="text-body-md">%</span></div>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 64.2%"></div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Mobile Bottom Navigation -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-xl border-t border-outline-variant z-50 flex justify-around items-center h-16 px-md">
+<a class="flex flex-col items-center gap-xs text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">dashboard_customize</span>
+<span class="text-[10px] font-label-caps">Canvas</span>
+</a>
+<a class="flex flex-col items-center gap-xs text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">view_kanban</span>
+<span class="text-[10px] font-label-caps">Tasks</span>
+</a>
+<div class="relative -top-4">
+<button class="w-12 h-12 bg-primary text-on-primary-fixed rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined font-bold">add</span>
+</button>
+</div>
+<a class="flex flex-col items-center gap-xs text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="text-[10px] font-label-caps">Hives</span>
+</a>
+<a class="flex flex-col items-center gap-xs text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-label-caps">Settings</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.hive-card-hover').forEach(card => {
+            card.addEventListener('mousedown', () => card.style.transform = 'scale(0.98)');
+            card.addEventListener('mouseup', () => card.style.transform = 'scale(1)');
+            card.addEventListener('mouseleave', () => card.style.transform = 'scale(1)');
+        });
+    </script>
+</body></html>

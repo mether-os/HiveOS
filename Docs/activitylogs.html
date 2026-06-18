@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HiveOS | Core_Hive Logs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;family=Space+Grotesk:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ai-glow {
+            text-shadow: 0 0 10px rgba(255, 200, 128, 0.3);
+        }
+        .terminal-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .terminal-scroll::-webkit-scrollbar-track {
+            background: rgba(30, 37, 51, 0.1);
+        }
+        .terminal-scroll::-webkit-scrollbar-thumb {
+            background: #1E2533;
+            border-radius: 2px;
+        }
+        @keyframes breathe {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .animate-breathe {
+            animation: breathe 3s ease-in-out infinite;
+        }
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            background: rgba(14, 17, 23, 0.8);
+            border: 1px solid #1E2533;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#001e2c",
+                        "surface-bright": "#40382e",
+                        "on-secondary-fixed-variant": "#004395",
+                        "tertiary-container": "#3ac2ff",
+                        "on-primary": "#452b00",
+                        "surface-variant": "#3c332a",
+                        "surface-tint": "#ffb955",
+                        "on-surface-variant": "#d7c3ae",
+                        "surface": "#19120a",
+                        "on-secondary-container": "#e6ecff",
+                        "inverse-primary": "#835500",
+                        "tertiary-fixed-dim": "#7cd0ff",
+                        "secondary": "#adc6ff",
+                        "background": "#19120a",
+                        "on-surface": "#eee0d2",
+                        "surface-container-highest": "#3c332a",
+                        "outline": "#9f8e7a",
+                        "on-primary-container": "#644000",
+                        "tertiary-fixed": "#c4e7ff",
+                        "on-tertiary": "#00344a",
+                        "surface-container-lowest": "#130d06",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "on-tertiary-container": "#004d6a",
+                        "surface-dim": "#19120a",
+                        "primary-fixed-dim": "#ffb955",
+                        "primary": "#ffc880",
+                        "surface-container-high": "#302920",
+                        "on-primary-fixed-variant": "#633f00",
+                        "outline-variant": "#524534",
+                        "on-error": "#690005",
+                        "primary-fixed": "#ffddb4",
+                        "on-primary-fixed": "#291800",
+                        "on-background": "#eee0d2",
+                        "primary-container": "#f5a623",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#0566d9",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary": "#002e6a",
+                        "tertiary": "#9bd9ff",
+                        "inverse-on-surface": "#372f26",
+                        "secondary-fixed": "#d8e2ff",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "surface-container-low": "#211a12",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed": "#001a42",
+                        "inverse-surface": "#eee0d2",
+                        "surface-container": "#251e16"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "unit": "8px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "container-margin": "40px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "code-md": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Space Grotesk"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Space Grotesk"],
+                        "label-caps": ["JetBrains Mono"],
+                        "headline-lg": ["Space Grotesk"],
+                        "body-lg": ["Inter"],
+                        "headline-xl": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "code-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-xl": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface min-h-screen font-body-md overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-md h-16 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tighter">HiveOS</span>
+<div class="hidden md:flex gap-md ml-xl items-end h-full">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 cursor-pointer active:scale-95 transition-transform pb-1" href="#">Canvas</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 cursor-pointer active:scale-95 transition-transform pb-1" href="#">Tasks</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 cursor-pointer active:scale-95 transition-transform pb-1" href="#">Docs</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 transition-colors duration-200 cursor-pointer active:scale-95 transition-transform" href="#">Hives</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 cursor-pointer active:scale-95 transition-transform pb-1" href="#">Settings</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden lg:flex items-center bg-surface-container rounded-lg px-sm py-xs border border-outline-variant w-64 group focus-within:border-primary transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md text-on-surface placeholder:text-on-surface-variant w-full" placeholder="Search system logs..." type="text"/>
+</div>
+<div class="flex items-center gap-sm">
+<button class="material-symbols-outlined p-xs text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">notifications</button>
+<button class="material-symbols-outlined p-xs text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">help</button>
+<div class="w-8 h-8 rounded-full bg-secondary-container overflow-hidden border border-outline-variant">
+<img alt="User avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a young tech innovator with a focused expression, wearing a minimalist dark turtleneck. The lighting is dramatic and moody, utilizing high-contrast shadows typical of a deep space aesthetic, with soft amber highlights reflecting off his skin. The background is a blurred digital workspace with subtle amber interface elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgfbULvsUtsQx-9v2LpJiCT3nzc_e_QX8zKZ2SIAqfqvMuCPEBYdjg7mAO5f40XKtNd9F7jorbPk3t9kvXZ_amXb6F9wvcvKNgJdBx_ZPO0uI4oQ8eY1zKrCbu0ahbuZ01otaKcK1_3Lvdf-Cgt0kFrRvFHH1qotITmmmkk57hOKWJOdC7lQ10i6XfBZgL3yn8IyLM8T3XGYmnvHkEgAbyRTcBPFtSd1xbe4Yzz5lPq6P0Me9htjC_AfmKixj9H0XTpIaaf2-LZ4A"/>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] z-40 flex flex-col py-md bg-surface-container dark:bg-surface-container border-r border-outline-variant w-[280px] hidden md:flex">
+<div class="px-md mb-xl flex items-center gap-sm">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+</div>
+<div>
+<h2 class="font-headline-md text-[18px] text-primary">Core_Hive</h2>
+<div class="flex items-center gap-xs">
+<div class="w-1.5 h-1.5 rounded-full bg-primary animate-breathe"></div>
+<span class="font-label-caps text-[10px] text-on-surface-variant">Active: 12 members</span>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-xs overflow-y-auto">
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 rounded-lg active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">dashboard_customize</span>
+<span class="font-label-caps text-label-caps">Canvas</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 rounded-lg active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">view_kanban</span>
+<span class="font-label-caps text-label-caps">Tasks</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 rounded-lg active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-caps text-label-caps">Docs</span>
+</a>
+<a class="flex items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg p-sm mx-xs active:scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-label-caps text-label-caps">Hives</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 rounded-lg active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-xs pt-md border-t border-outline-variant">
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+<span class="font-label-caps text-label-caps">Support</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant p-sm mx-xs hover:bg-surface-variant/50 transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-label-caps text-label-caps">Profile</span>
+</a>
+</div>
+</aside>
+<!-- Main Content: Terminal Log Viewer -->
+<main class="md:ml-[280px] mt-16 p-md h-[calc(100vh-64px)] flex flex-col gap-md relative bg-[#080A0F]">
+<!-- Filter Header -->
+<div class="glass-panel rounded-xl p-sm flex flex-wrap items-center gap-md shadow-lg">
+<div class="flex items-center gap-sm px-sm py-xs border-r border-outline-variant pr-md">
+<span class="material-symbols-outlined text-primary text-[20px]">filter_list</span>
+<span class="font-label-caps text-label-caps text-on-surface">Filters</span>
+</div>
+<div class="flex items-center gap-md overflow-x-auto no-scrollbar">
+<select class="bg-surface-container border border-outline-variant text-on-surface text-body-md rounded-lg focus:ring-1 focus:ring-primary focus:border-primary py-xs px-md">
+<option>All Members</option>
+<option>Alice-AI (Hivemind)</option>
+<option>System (Root)</option>
+<option>Julian.eth</option>
+</select>
+<select class="bg-surface-container border border-outline-variant text-on-surface text-body-md rounded-lg focus:ring-1 focus:ring-primary focus:border-primary py-xs px-md">
+<option>All Events</option>
+<option>Process Start</option>
+<option>Security Check</option>
+<option>AI Cognition</option>
+</select>
+<div class="flex items-center bg-surface-container border border-outline-variant rounded-lg py-xs px-md gap-sm">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">calendar_today</span>
+<span class="text-body-md text-on-surface">Oct 24, 2023 - Today</span>
+</div>
+</div>
+<div class="ml-auto flex items-center gap-sm">
+<span class="font-label-caps text-[10px] text-on-surface-variant">Live Feed</span>
+<div class="w-2 h-2 rounded-full bg-primary animate-breathe"></div>
+</div>
+</div>
+<!-- Terminal Viewer -->
+<div class="flex-1 bg-[#0E1117] border border-[#1E2533] rounded-xl overflow-hidden flex flex-col shadow-2xl relative">
+<!-- Terminal Title Bar -->
+<div class="h-10 bg-[#141920] border-b border-[#1E2533] flex items-center px-md justify-between">
+<div class="flex items-center gap-sm">
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-error-container/50"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-surface-variant"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-primary/30"></div>
+</div>
+<span class="font-code-md text-[12px] text-on-surface-variant ml-md">hive_activity_runtime.log</span>
+</div>
+<div class="flex gap-md">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant cursor-pointer hover:text-on-surface">download</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant cursor-pointer hover:text-on-surface">content_copy</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant cursor-pointer hover:text-on-surface">terminal</span>
+</div>
+</div>
+<!-- Log Entries -->
+<div class="flex-1 overflow-y-auto p-md font-code-md text-code-md terminal-scroll space-y-1">
+<!-- Log Line AI -->
+<div class="flex gap-md group hover:bg-[#1E2533]/30 px-sm py-0.5 rounded transition-colors border-l-2 border-transparent hover:border-primary">
+<span class="text-on-surface-variant opacity-50 shrink-0 w-32">2023-10-24 14:02:11</span>
+<span class="text-primary font-bold shrink-0 w-28">Alice-AI</span>
+<div class="flex items-start gap-sm">
+<span class="text-primary ai-glow">✦</span>
+<span class="text-primary ai-glow">Neural weights re-balanced for Hive_Core_7. Synaptic latency reduced by 14ms.</span>
+</div>
+</div>
+<!-- Log Line System -->
+<div class="flex gap-md group hover:bg-[#1E2533]/30 px-sm py-0.5 rounded transition-colors border-l-2 border-transparent">
+<span class="text-on-surface-variant opacity-50 shrink-0 w-32">2023-10-24 14:02:08</span>
+<span class="text-on-surface-variant font-bold shrink-0 w-28">SYSTEM</span>
+<span class="text-on-surface">Snapshot of Canvas_Active archived to immutable_vault_4.</span>
+</div>
+<!-- Log Line Member -->
+<div class="flex gap-md group hover:bg-[#1E2533]/30 px-sm py-0.5 rounded transition-colors border-l-2 border-transparent">
+<span class="text-on-surface-variant opacity-50 shrink-0 w-32">2023-10-24 14:01:55</span>
+<span class="text-secondary font-bold shrink-0 w-28">Julian.eth</span>
+<span class="text-on-surface">Updated document structure: "Proposal_Deep_Space_Infra.md"</span>
+</div>
+<!-- Log Line AI -->
+<div class="flex gap-md group hover:bg-[#1E2533]/30 px-sm py-0.5 rounded transition-colors border-l-2 border-transparent hover:border-primary">
+<span class="text-on-surface-variant opacity-50 shrink-0 w-32">2023-10-24 13:59:42</span>
+<span class="text-primary font-bold shrink-0 w-28">Alice-AI</span>
+<div class="flex items-start gap-sm">
+<span class="text-primary ai-glow">✦</span>
+<span class="text-primary ai-glow">Autonomous task "Infra Cleanup" initiated. Detecting redundant node connections...</span>
+</div>
+</div>
+<!-- Log Line System -->
+<div class="flex gap-md group hover:bg-[#1E2533]/30 px-sm py-0.5 rounded transition-colors border-l-2 border-transparent">
+<span class="text-on-surface-variant opacity-50 shrink-0 w-32">2023-10-24 13:58:30</span>
+<span class="text-on-surface-variant font-bold shrink-0 w-28">SYSTEM</span>
+<span class="text-on-surface">New member joined Core_Hive: <span class="text-tertiary">@seraph_0x</span>. Permissions: Contributor.</span>
+</div>
+<!-- Log Line Member -->
+<div class="flex gap-md group hover:bg-[#1E2533]/30 px-sm py-0.5 rounded transition-colors border-l-2 border-transparent">
+<span class="text-on-surface-variant opacity-50 shrink-0 w-32">2023-10-24 13:57:11</span>
+<span class="text-secondary font-bold shrink-0 w-28">Elena_Dev</span>
+<span class="text-on-surface">Pushed 4 commits to branch: <span class="bg-surface-variant/40 px-xs rounded text-[12px]">refactor/logic-gate</span></span>
+</div>
+<!-- AI Thinking Block -->
+<div class="my-md bg-[#141920] border-y border-[#1E2533] p-md relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="flex items-center gap-md mb-sm">
+<span class="text-primary font-bold uppercase tracking-widest text-[10px]">AI Insight Engine</span>
+<div class="flex-1 h-[1px] bg-outline-variant/30"></div>
+<span class="material-symbols-outlined text-primary text-[14px]">auto_awesome</span>
+</div>
+<p class="text-primary italic ai-glow max-w-2xl">
+                        "High collaboration density detected in Project_Delta. Suggesting a 15-minute sync or automated documentation merge to prevent cognitive fragmentation among 4 active contributors."
+                    </p>
+<!-- Background Shader Placeholder -->
+<div class="absolute inset-0 pointer-events-none opacity-5">
+
+</div>
+</div>
+<!-- Log Line System Warning -->
+<div class="flex gap-md group hover:bg-[#1E2533]/30 px-sm py-0.5 rounded transition-colors border-l-2 border-error">
+<span class="text-on-surface-variant opacity-50 shrink-0 w-32">2023-10-24 13:50:02</span>
+<span class="text-error font-bold shrink-0 w-28">SEC_ALRT</span>
+<span class="text-on-error-container">Unauthorized read attempt blocked from IP: 192.168.1.104. Token invalid.</span>
+</div>
+<!-- Continuous feed simulation -->
+<div class="space-y-1" id="log-feed">
+<!-- Dynamic logs will appear here -->
+</div>
+</div>
+<!-- Terminal Input -->
+<div class="h-14 bg-[#141920] border-t border-[#1E2533] flex items-center px-md gap-md">
+<span class="text-primary font-code-md">❯</span>
+<input class="bg-transparent border-none focus:ring-0 text-code-md text-primary placeholder:text-on-surface-variant/40 w-full font-code-md" placeholder="Type a command or query the logs..." type="text"/>
+<div class="flex items-center gap-sm">
+<span class="font-label-caps text-[10px] text-on-surface-variant">UTF-8</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">L721, C12</span>
+<div class="w-4 h-4 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] text-on-primary">bolt</span>
+</div>
+</div>
+</div>
+</div>
+<!-- System Stats Footer -->
+<div class="flex flex-wrap items-center justify-between gap-md text-[11px] font-label-caps text-on-surface-variant">
+<div class="flex items-center gap-xl">
+<div class="flex items-center gap-xs">
+<span class="opacity-50">LATENCY:</span>
+<span class="text-primary">12ms</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="opacity-50">THROUGHPUT:</span>
+<span class="text-on-surface">452 events/min</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="opacity-50">AI COGNITION:</span>
+<span class="text-primary">Optimized</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+<span>Database: Connected</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-primary animate-breathe"></span>
+<span>Network: Encrypted</span>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Simulate real-time log updates
+        const feed = document.getElementById('log-feed');
+        const actors = ['Alice-AI', 'SYSTEM', 'Julian.eth', 'Elena_Dev', 'seraph_0x'];
+        const events = [
+            'Modified permissions for workspace: "Marketing_Vault"',
+            'Synchronized 12 files with cloud redundancy layer.',
+            '✦ Cognitive analysis complete: 4 new patterns identified.',
+            'Backup completed successfully in 0.4s.',
+            'Access token refreshed for external API integration.',
+            '✦ Predictive model updated based on recent activity spikes.',
+            'New document added to "Research_Hive" repository.'
+        ];
+
+        function addLogLine() {
+            const actor = actors[Math.floor(Math.random() * actors.length)];
+            const event = events[Math.floor(Math.random() * events.length)];
+            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const isAI = event.includes('✦');
+
+            const div = document.createElement('div');
+            div.className = `flex gap-md group hover:bg-[#1E2533]/30 px-sm py-0.5 rounded transition-colors border-l-2 border-transparent ${isAI ? 'hover:border-primary' : ''}`;
+            
+            const actorClass = isAI ? 'text-primary font-bold' : (actor === 'SYSTEM' ? 'text-on-surface-variant font-bold' : 'text-secondary font-bold');
+            const eventClass = isAI ? 'text-primary ai-glow' : 'text-on-surface';
+
+            div.innerHTML = `
+                <span class="text-on-surface-variant opacity-50 shrink-0 w-32">2023-10-24 ${time}</span>
+                <span class="${actorClass} shrink-0 w-28">${actor}</span>
+                <div class="flex items-start gap-sm">
+                    ${isAI ? '<span class="text-primary ai-glow">✦</span>' : ''}
+                    <span class="${eventClass}">${event}</span>
+                </div>
+            `;
+
+            feed.appendChild(div);
+            
+            // Keep the log viewer scrolling
+            const container = feed.parentElement;
+            container.scrollTop = container.scrollHeight;
+
+            // Remove old entries to keep performance snappy
+            if (feed.children.length > 50) {
+                feed.removeChild(feed.firstChild);
+            }
+        }
+
+        // Add new logs periodically
+        setInterval(addLogLine, 3500);
+    </script>
+</body></html>

@@ -70,6 +70,16 @@ const BASE_EDGE_STYLE = {
   style: { stroke: "#334155", strokeWidth: 1.5 },
   markerEnd: { type: MarkerType.ArrowClosed, color: "#334155", width: 15, height: 15 },
 } as const;
+interface RawNode {
+  id: string;
+  position: { x: number; y: number };
+  title: string;
+  description?: string;
+  category: string;
+  tags: string[];
+  createdBy?: string;
+  data?: Record<string, unknown>;
+}
 export function CanvasBoard({ hiveId }: CanvasBoardProps) {
   const { socket, status } = useSocket();
   const { activeMode, setActiveMode } = useCanvasStore();
@@ -116,7 +126,7 @@ export function CanvasBoard({ hiveId }: CanvasBoardProps) {
         setLoading(true);
         const res = await fetch(`/api/hives/${hiveId}/canvas`);
         const result = await res.json();
-        if (result.data && Array.isArray(result.data.nodes) && Array.isArray(result.data.edges)) {
+        if (result.data) {
           const fetchedNodes = result.data.nodes.map((n: RawNode) => ({
             id: n.id,
             type: "customNode",

@@ -20,7 +20,7 @@ export const PresenceAvatar: React.FC<PresenceAvatarProps> = ({
   className,
 }) => {
   const workspaceMembers = usePresenceStore((state) => state.workspaceMembers);
-  const isOnline = workspaceMembers.some((m) => m.id === userId);
+  const isOnline = workspaceMembers?.some?.((m) => m.id === userId) ?? false;
 
   const sizeClasses = {
     sm: "h-8 w-8 text-xs",

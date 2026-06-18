@@ -48,7 +48,19 @@
   --color-error: #f43f5e;
   --color-error-subtle: rgba(244, 63, 94, 0.08);
 
-  /* Borders */
+  /* UI Component Tokens (shadcn compatibility) */
+  --color-card: #060b13;
+  --color-card-foreground: #f0f4f8;
+  --color-popover: #0a111c;
+  --color-popover-foreground: #f0f4f8;
+  --color-secondary: #111a2e;
+  --color-secondary-foreground: #f0f4f8;
+  --color-muted: #0c1524;
+  --color-muted-foreground: #94a3b8;
+  --color-destructive: #f43f5e;
+  --color-destructive-foreground: #f0f4f8;
+  --color-input: #111a2e;
+  --color-ring: #f5a623;
   --color-border: #131d30;
   --color-border-subtle: rgba(19, 29, 48, 0.5);
 

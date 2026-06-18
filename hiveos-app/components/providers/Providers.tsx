@@ -28,6 +28,7 @@ import { getQueryClient } from "@/lib/query-client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { type ReactNode } from "react";
+import { useEffect } from "react";
 import { RealtimeProvider } from "@/features/realtime/hooks/useSocket";
 
 interface ProvidersProps {
@@ -37,6 +38,32 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   // getQueryClient() returns the browser singleton or creates a new server client
   const queryClient = getQueryClient();
+
+  // Suppress MetaMask and other extension errors that leak into global error handler
+  useEffect(() => {
+    const handler = (event: ErrorEvent) => {
+      const msg = event.message || "";
+      const src = event.filename || "";
+      // Ignore MetaMask inpage script errors and other known extension noise
+      if (msg.includes("MetaMask") || src.includes("inpage.js") || src.includes("extension")) {
+        event.preventDefault();
+        console.debug("[Providers] Suppressed extension error:", msg);
+      }
+    };
+
+    window.addEventListener("error", handler);
+    window.addEventListener("unhandledrejection", (e) => {
+      const reason = e.reason?.message || String(e.reason);
+      if (reason.includes("MetaMask") || reason.includes("inpage")) {
+        e.preventDefault();
+        console.debug("[Providers] Suppressed extension promise rejection:", reason);
+      }
+    });
+
+    return () => {
+      window.removeEventListener("error", handler);
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

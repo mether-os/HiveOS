@@ -16,7 +16,7 @@ export const PresenceIndicator: React.FC<PresenceIndicatorProps> = ({
   showText = false,
 }) => {
   const workspaceMembers = usePresenceStore((state) => state.workspaceMembers);
-  const isOnline = workspaceMembers.some((m) => m.id === userId);
+  const isOnline = workspaceMembers?.some?.((m) => m.id === userId) ?? false;
 
   return (
     <div className={cn("flex items-center gap-2 select-none", className)}>
