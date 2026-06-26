@@ -20,7 +20,22 @@ const httpServer = createServer((req, res) => {
 
 const io = new Server(httpServer, {
   cors: {
-    origin: [CLIENT_URL, "http://localhost:3000", "http://localhost:3001"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or local testing)
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = [CLIENT_URL, "http://localhost:3000", "http://localhost:3001"];
+      const isAllowed = allowedOrigins.includes(origin) || 
+                        origin.endsWith(".vercel.app") || 
+                        origin.includes("mayank-sharmas-projects");
+                        
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`[Socket CORS] Connection origin blocked: ${origin}`);
+        callback(new Error("CORS validation failed"));
+      }
+    },
     credentials: true,
   },
   pingTimeout: 30000,
