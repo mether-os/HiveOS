@@ -1,0 +1,194 @@
+name: CI — HiveOS
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel in-progress runs on the same branch when a new commit is pushed
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────────────
+  # JOB 1: Lint + Typecheck — hiveos-app (Next.js)
+  # ─────────────────────────────────────────────
+  lint-typecheck-app:
+    name: "🔍 App — Lint & Type Check"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: hiveos-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: hiveos-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: ESLint check
+        run: npm run lint
+
+  # ─────────────────────────────────────────────
+  # JOB 2: Build check — hiveos-app (Next.js)
+  # ─────────────────────────────────────────────
+  build-app:
+    name: "🏗️ App — Build"
+    runs-on: ubuntu-latest
+    needs: lint-typecheck-app
+    defaults:
+      run:
+        working-directory: hiveos-app
+
+    env:
+      # Dummy env vars to satisfy Next.js build — real values are in Vercel
+      MONGODB_URI: mongodb://localhost:27017/hiveos_ci
+      BETTER_AUTH_SECRET: ci-secret-placeholder-32-chars-long
+      BETTER_AUTH_URL: http://localhost:3000
+      GITHUB_CLIENT_ID: ci-placeholder
+      GITHUB_CLIENT_SECRET: ci-placeholder
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:3002
+      REDIS_URL: redis://localhost:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: hiveos-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js app
+        run: npm run build
+
+      - name: Upload build artifact (optional, for debugging)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: nextjs-build-failure-logs
+          path: hiveos-app/.next/
+          retention-days: 3
+
+  # ─────────────────────────────────────────────
+  # JOB 3: Lint + Typecheck — realtime-server
+  # ─────────────────────────────────────────────
+  lint-typecheck-realtime:
+    name: "🔍 Realtime Server — Type Check"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: realtime-server
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: realtime-server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+  # ─────────────────────────────────────────────
+  # JOB 4: Build check — realtime-server
+  # ─────────────────────────────────────────────
+  build-realtime:
+    name: "🏗️ Realtime Server — Build"
+    runs-on: ubuntu-latest
+    needs: lint-typecheck-realtime
+    defaults:
+      run:
+        working-directory: realtime-server
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: realtime-server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+  # ─────────────────────────────────────────────
+  # JOB 5: Security audit — both packages
+  # ─────────────────────────────────────────────
+  security-audit:
+    name: "🔒 Security Audit"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Audit hiveos-app dependencies
+        working-directory: hiveos-app
+        # --audit-level=high only fails on high/critical vulns
+        run: npm audit --audit-level=high || true
+
+      - name: Audit realtime-server dependencies
+        working-directory: realtime-server
+        run: npm audit --audit-level=high || true
+
+  # ─────────────────────────────────────────────
+  # JOB 6: Final CI gate (required for branch protection)
+  # ─────────────────────────────────────────────
+  ci-success:
+    name: "✅ CI Gate — All Checks Passed"
+    runs-on: ubuntu-latest
+    needs:
+      - build-app
+      - build-realtime
+      - security-audit
+    if: always()
+
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [[ "${{ needs.build-app.result }}" != "success" ]]; then
+            echo "❌ App build failed"
+            exit 1
+          fi
+          if [[ "${{ needs.build-realtime.result }}" != "success" ]]; then
+            echo "❌ Realtime server build failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed!"

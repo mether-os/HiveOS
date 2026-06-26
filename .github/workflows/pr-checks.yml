@@ -1,0 +1,72 @@
+name: PR — Quality Gates
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # ─────────────────────────────────────────────
+  # PR size check — warn on huge PRs
+  # ─────────────────────────────────────────────
+  pr-size-check:
+    name: "📏 PR Size Check"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Count changed lines
+        id: diff
+        run: |
+          LINES=$(git diff --stat origin/${{ github.base_ref }}...HEAD | tail -1 | grep -oP '\d+(?= insertion)' || echo 0)
+          echo "lines=$LINES" >> $GITHUB_OUTPUT
+          echo "Changed lines: $LINES"
+
+      - name: Warn on large PR
+        if: ${{ fromJson(steps.diff.outputs.lines) > 500 }}
+        run: |
+          echo "⚠️ This PR changes more than 500 lines. Consider breaking it into smaller PRs."
+
+  # ─────────────────────────────────────────────
+  # Dependency change check
+  # ─────────────────────────────────────────────
+  dependency-review:
+    name: "📦 Dependency Review"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD
+
+  # ─────────────────────────────────────────────
+  # PR title check — enforce conventional commits
+  # ─────────────────────────────────────────────
+  pr-title-check:
+    name: "📝 PR Title (Conventional Commits)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title format
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            chore
+            refactor
+            perf
+            test
+            ci
+            build
+            revert
+          requireScope: false
