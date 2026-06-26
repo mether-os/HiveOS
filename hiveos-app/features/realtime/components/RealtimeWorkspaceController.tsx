@@ -20,11 +20,17 @@ export const RealtimeWorkspaceController: React.FC<RealtimeWorkspaceControllerPr
     try {
       const res = await fetch(`/api/hives/${hiveId}/canvas`);
       if (!res.ok) return;
-      const data = await res.json();
+      const json = await res.json();
+      if (!json || !json.data) return;
       // Dispatch a custom event that CanvasBoard listens to
       // This avoids prop drilling through the layout tree
       window.dispatchEvent(
-        new CustomEvent("canvas:resync", { detail: { nodes: data.nodes, edges: data.edges } })
+        new CustomEvent("canvas:resync", { 
+          detail: { 
+            nodes: json.data.nodes, 
+            edges: json.data.edges 
+          } 
+        })
       );
     } catch (err) {
       console.error("[Realtime Controller] Canvas resync failed:", err);
