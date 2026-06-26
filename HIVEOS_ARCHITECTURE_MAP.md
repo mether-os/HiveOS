@@ -1,210 +1,209 @@
-# HiveOS Visual Architecture Map
+# HiveOS Complete Visual Architecture Map
 
-This document presents a structured reference model detailing the data flow, file locations, schemas, and processing loops within the HiveOS system.
+This document is a visual design and walkthrough guide of the HiveOS technical stack. It maps out the path of data, control, and state synchronization across all 10 architecture layers of the application.
 
 ---
 
-## SECTION 1 — VERTICAL ARCHITECTURE STACK
+## 1. THE VERTICAL STACK MAP
 
-```mermaid
-graph TD
-    %% Layers
-    subgraph L1 [1. Frontend Layer]
-        CanvasBoard[CanvasBoard.tsx]
-        Controller[RealtimeWorkspaceController.tsx]
-        HookSocket[useSocket.ts]
-    end
-
-    subgraph L2 [2. API Layer]
-        CanvasRoute[app/api/hives/.../canvas/route.ts]
-        ActionCanvas[server/actions/canvas.ts]
-        AuthLib[lib/auth.ts]
-    end
-
-    subgraph L3 [3. Socket Layer]
-        SocketServer[realtime-server/src/server.ts]
-        PresenceMgr[realtime-server/src/presence.ts]
-        AuthVerify[realtime-server/src/auth.ts]
-    end
-
-    subgraph L4 [4. Services Layer]
-        HiveMind[hiveMindService.ts]
-        SearchIdx[knowledgeIndexService.ts]
-    end
-
-    subgraph L5 [5. Agents Layer]
-        Registry[agentRegistry.ts]
-        ActionEngine[agentActionEngine.ts]
-    end
-
-    subgraph L6 [6. Knowledge Graph Layer]
-        GraphEng[graphEngine.ts]
-        UniContext[unifiedContext.ts]
-    end
-
-    subgraph L7 [7. MongoDB Layer]
-        M_Node[(CanvasNode.ts Model)]
-        M_Edge[(CanvasEdge.ts Model)]
-        M_Hive[(Hive.ts Model)]
-    end
-
-    subgraph L8 [8. Redis Layer]
-        R_Cache[ioredis Cache-Aside client]
-        R_Adapter[Socket.io Redis Pub/Sub adapter]
-    end
-
-    subgraph L9 [9. GitHub Layer]
-        WebhookRoute[app/api/webhooks/github/route.ts]
-        M_GitEvent[(GithubEvent.ts Model)]
-    end
-
-    subgraph L10 [10. Workflow Layer]
-        WorkEng[workflowEngine.ts]
-        ExecEng[executionEngine.ts]
-    end
-
-    %% Flow Arrows
-    CanvasBoard -->|REST Updates| CanvasRoute
-    Controller -->|Dispatch customEvent| CanvasBoard
-    HookSocket -->|WS Presence| SocketServer
-    
-    CanvasRoute -->|connectDB| ActionCanvas
-    ActionCanvas -->|Query| M_Node
-    
-    SocketServer -->|Adapter Scale| R_Adapter
-    SocketServer -->|Verify Cookies| AuthVerify
-    AuthVerify -->|Session Lookup| MongoDB
-    
-    HiveMind -->|DFS cyclecheck| GraphEng
-    HiveMind -->|NVIDIA NIM Context| UniContext
-    
-    Registry -->|Capabilities Check| ActionEngine
-    ActionEngine -->|Template Generation| M_Node
-    
-    GraphEng -->|Invalidates Graph Cache| R_Cache
-    
-    WebhookRoute -->|HMAC Verified| M_GitEvent
-    WebhookRoute -->|Trigger Event| WorkEng
-    
-    WorkEng -->|Run step| ExecEng
-    ExecEng -->|Transaction Write| M_Node
+```
++---------------------------------------------------------------------------------+
+|                                 FRONTEND LAYER                                  |
+|   - Component: CanvasBoard.tsx          - Controller: RealtimeWorkspaceController |
+|   - Hooks: useSocket.ts, useCanvasActions.ts                                    |
++---------------------------------------------------------------------------------+
+                                         │
+                                         ▼ (HTTP REST / API Actions)
++---------------------------------------------------------------------------------+
+|                                    API LAYER                                    |
+|   - Route Handlers: app/api/hives/[hiveId]/canvas/route.ts                      |
+|   - Server Actions: server/actions/canvas.ts, server/actions/hives.ts           |
++---------------------------------------------------------------------------------+
+                                         │
+                                         ▼ (WebSockets / Presence / Live Sync)
++---------------------------------------------------------------------------------+
+|                                  SOCKET LAYER                                   |
+|   - Port: 3002 (Standalone Node.js Server)                                      |
+|   - Server: realtime-server/src/server.ts, presence.ts, auth.ts                 |
++---------------------------------------------------------------------------------+
+                                         │
+                                         ▼ (Background AI & Diagnostics)
++---------------------------------------------------------------------------------+
+|                                 SERVICES LAYER                                  |
+|   - Core Analyzers: hiveMindService.ts, knowledgeIndexService.ts                |
+|   - LLM: hivemind-llm/service.ts (NVIDIA NIM Interface)                         |
++---------------------------------------------------------------------------------+
+                                         │
+                                         ▼ (Agent Registry & Delegation)
++---------------------------------------------------------------------------------+
+|                                  AGENTS LAYER                                   |
+|   - Definitions: agentRegistry.ts (Architect, Product, PM, Risk, Doc Agents)     |
+|   - Planning: agentActionEngine.ts (Action templates & quality scores)          |
++---------------------------------------------------------------------------------+
+                                         │
+                                         ▼ (Workspace Adjacency & Context)
++---------------------------------------------------------------------------------+
+|                              KNOWLEDGE GRAPH LAYER                              |
+|   - Engine: graphEngine.ts (Builds adjacency lists, checks cycles)              |
+|   - Aggregator: unifiedContext.ts (Aggregates documents & node metadata)         |
++---------------------------------------------------------------------------------+
+                                         │
+                                         ▼ (Primary Persistence)
++---------------------------------------------------------------------------------+
+|                                  MONGODB LAYER                                  |
+|   - Collections: hives, canvasnodes, canvasedges, workflowruns, agentinstances |
+|   - Text Index: search queries directed to the knowledgeindices collection       |
++---------------------------------------------------------------------------------+
+                                         │
+                                         ▼ (Cache & Event Bus)
++---------------------------------------------------------------------------------+
+|                                   REDIS LAYER                                   |
+|   - Caching: ioredis client (stores compiled graph under key hiveos:graph)      |
+|   - Pub/Sub: broadcast events via hiveos:canvas and hiveos:activity channels    |
++---------------------------------------------------------------------------------+
+                                         │
+                                         ▼ (External Event Ingestion)
++---------------------------------------------------------------------------------+
+|                                  GITHUB LAYER                                   |
+|   - Integration: GithubIntegration.tsx, GithubEvent schema                     |
+|   - Webhook: app/api/webhooks/github/route.ts (HMAC signature verification)     |
++---------------------------------------------------------------------------------+
+                                         │
+                                         ▼ (Orchestrated Execution)
++---------------------------------------------------------------------------------+
+|                                 WORKFLOW LAYER                                  |
+|   - Orchestrator: workflowEngine.ts (Deduplication, triggers, run statuses)      |
+|   - Execution: executionEngine.ts (Transactional writes, rollback snapshots)    |
++---------------------------------------------------------------------------------+
 ```
 
 ---
 
-## SECTION 2 — DETAILED LAYER BREAKDOWN
+## 2. COMPONENT-BY-COMPONENT SPECIFICATION
 
 ### 1. Frontend Layer
-* **Files**:
-  * [CanvasBoard.tsx](file:///c:/Users/mayan/HiveOS/hiveos-app/features/canvas/components/CanvasBoard.tsx): Parent board component for the React Flow coordinate render board.
-  * [RealtimeWorkspaceController.tsx](file:///c:/Users/mayan/HiveOS/hiveos-app/features/realtime/components/RealtimeWorkspaceController.tsx): Dispatches custom events to trigger canvas re-syncs on connection state changes.
-  * [useSocket.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/features/realtime/hooks/useSocket.ts): Custom React hook that handles initialization and caching of the Socket.io client instance.
+* **Actual Files**:
+  * [CanvasBoard.tsx](file:///c:/Users/mayan/HiveOS/hiveos-app/features/canvas/components/CanvasBoard.tsx): Parent component managing the React Flow canvas workspace.
+  * [RealtimeWorkspaceController.tsx](file:///c:/Users/mayan/HiveOS/hiveos-app/features/realtime/components/RealtimeWorkspaceController.tsx): Handles room subscription and triggers canvas re-syncs on reconnection.
+  * [useSocket.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/features/realtime/hooks/useSocket.ts): Instantiates and exposes the global Socket.io instance.
 * **Core Functions**:
-  * `handleResync(e)`: Invoked by CanvasBoard on event `canvas:resync`. Remaps raw node and edge configurations into React Flow schemas.
-  * `resyncCanvasState()`: Fetches the latest canvas state from the REST API on network reconnection.
-* **Events**: Dispatches `"canvas:resync"` to window; emits `"workspace:join"` to WebSocket channels.
+  * `handleResync(e: CustomEvent)`: Remaps raw nodes and edges into custom React Flow specifications when network reconnects.
+  * `resyncCanvasState()`: Fetches the latest database canvas structure from Next.js REST routes.
 
 ### 2. API Layer
-* **Files**:
-  * `app/api/hives/[hiveId]/canvas/route.ts`: API endpoints managing workspace nodes, coordinate mutations, and edge creations.
-  * [actions/canvas.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/actions/canvas.ts): Server actions querying canvas vertices from MongoDB.
+* **Actual Files**:
+  * `app/api/hives/[hiveId]/canvas/route.ts`: Manages board operations (adding nodes, updates, and deletes).
+  * [canvas.ts (Actions)](file:///c:/Users/mayan/HiveOS/hiveos-app/server/actions/canvas.ts): Queries canvas elements directly from database.
 * **Core Functions**:
-  * `GET(req, { params })`: Resolves session and returns canvas elements.
-  * `POST(req, { params })`: Matches execution payload flags to perform canvas actions (`create_node`, `update_node`, `create_edge`, `delete_edge`).
-  * `getCanvasElements(hiveId)`: Pulls canvas collections from database.
+  * `GET()`: Resolves session and fetches canvas.
+  * `POST()`: Parses actions (`create_node`, `update_node`, `create_edge`, `delete_edge`), writes to DB, updates search index, and invalidates Redis graph cache.
 
 ### 3. Socket Layer
-* **Files**:
-  * `realtime-server/src/server.ts`: The main entry point for the standalone Socket.io WS server.
-  * `realtime-server/src/presence.ts`: Tracks real-time active workspace users and coordinates in Redis.
-  * `realtime-server/src/auth.ts`: Cookie parser validating connection sessions against MongoDB collections.
+* **Actual Files**:
+  * `realtime-server/src/server.ts`: Entry point for the Node.js standalone WebSockets server.
+  * `realtime-server/src/presence.ts`: Manages user mouse coordinates, active rooms, and typing indicators in memory.
+  * `realtime-server/src/auth.ts`: Auth middleware validating Better Auth session cookies.
 * **Core Functions**:
-  * `onConnection(socket)`: Connects client and hooks workspace event listeners.
-  * `broadcastPresence(workspaceId)`: Scopes presence broadcasts to namespace rooms.
-  * `validateSessionToken(token)`: Validates cookies on connection handshake.
-* **WebSocket Events**:
-  * Receives `"workspace:join"`, `"presence:update"`, `"cursor:move"`, `"typing:start"`.
-  * Emits `"canvas:node-create"`, `"presence:list"`, `"chat:message"`.
+  * `socketAuthMiddleware(socket, next)`: extracts cookies from socket headers, queries MongoDB's `sessions` collection, and rejects unauthorized connections.
+  * `broadcastPresence(workspaceId)`: Emits typing and coordinate data to users in a workspace room.
 
 ### 4. Services Layer
-* **Files**:
-  * [hiveMindService.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/hiveMindService.ts): Runs cycle analysis, outputs recommendations, and calculates project metrics.
-  * [knowledgeIndexService.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/knowledgeIndexService.ts): Syncs canvas modifications to search collections.
+* **Actual Files**:
+  * [hiveMindService.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/hiveMindService.ts): Runs cycle audits and triggers NVIDIA NIM LLM analysis.
+  * `server/services/hivemind-llm/service.ts`: Handles requests to LLM endpoints.
+  * [knowledgeIndexService.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/knowledgeIndexService.ts): Indexes canvas items into a queryable MongoDB full-text index.
 * **Core Functions**:
-  * `detectCycles(nodes, edges)`: DFS implementation checking for loops.
-  * `findCriticalPath(nodes, edges)`: Finds the longest scheduling chain in DAG configurations.
-  * `indexNode(node)`: Normalizes nodes and adds them to text indexes.
+  * `runHiveMindAnalysis(hiveId)`: Assembles context, runs local topological checks, prompts NIM endpoint, and writes recommendations.
+  * `indexNode(node)`: normalizes canvas node metadata into `knowledgeindices` collection.
 
 ### 5. Agents Layer
-* **Files**:
-  * [agentRegistry.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/agentRegistry.ts): Defines base capability matrices for agents.
-  * [agentActionEngine.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/agentActionEngine.ts): Heuristic engine mapping diagnostic findings to action plans.
+* **Actual Files**:
+  * [agentRegistry.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/agentRegistry.ts): Registers default agents (Architect, Product, PM, Risk, Doc) and seeds databases.
+  * [agentActionEngine.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/agentActionEngine.ts): Heuristics engine mapping findings to action plan templates.
 * **Core Functions**:
-  * `buildAgentContext(hiveId)`: Generates text context summaries of workspace metrics.
-  * `generateActionPlans(hiveId, findings)`: Maps diagnostics to step templates.
-  * `computeActionQualityScore(...)`: Calculates quality metrics based on plan reversibility.
+  * `buildAgentContext(hiveId)`: Builds workspace statistics (nodes, edges, cycles, critical paths) for agents.
+  * `generateActionPlans(hiveId, recommendations)`: Auto-creates plans and computes quality/reversibility scores.
 
 ### 6. Knowledge Graph Layer
-* **Files**:
-  * [graphEngine.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/graphEngine.ts): Assembles adjacency lists from vertices and edges.
-  * [unifiedContext.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/unifiedContext.ts): Aggregates workspace data (nodes, documents, activity history) for LLM consumption.
+* **Actual Files**:
+  * [graphEngine.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/graphEngine.ts): Computes graph adjacency maps and cache keys.
+  * [unifiedContext.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/unifiedContext.ts): Aggregates workspace data (documents, nodes, commit histories) for LLM context windows.
 * **Core Functions**:
-  * `buildGraph(hiveId)`: Queries elements and caches them in Redis.
-  * `getProjectContext(hiveId)`: Compiles workspace states for model parsing.
+  * `buildGraph(hiveId)`: Compiles node and edge states into an adjacency matrix.
+  * `getProjectContext(hiveId)`: Serializes workspace states for AI consumption.
 
-### 7. MongoDB Layer (Database Models)
-* **Files**:
-  * `server/models/CanvasNode.ts`: Document schema representing visual items.
-  * `server/models/CanvasEdge.ts`: Directed connection schema.
-  * `server/models/Hive.ts`: Workspace settings schema.
-  * `server/models/WorkflowRun.ts`: Stores step execution histories and logs.
-* **Classes (Mongoose Models)**:
-  * `CanvasNode`: Tracks coordinates, creators, categories, and titles.
-  * `CanvasEdge`: Tracks target IDs, source IDs, and relation types.
-  * `WorkflowRun`: Tracks proposed runs, step logs, and approval metadata.
+### 7. MongoDB Layer
+* **Actual Files**:
+  * `server/models/CanvasNode.ts`: Visual card schema (type, coordinates, status).
+  * `server/models/CanvasEdge.ts`: Directed dependency link schema (source, target, relationType).
+  * `server/models/Hive.ts`: Core workspace configuration schema.
+  * `server/models/WorkflowRun.ts`: Holds run steps, logs, and approval signatures.
+* **Actual Classes (Schemas)**:
+  * `CanvasNode`: Vertex schema with indices on `hiveId` and `id`.
+  * `CanvasEdge`: Link schema with compound unique indices.
 
 ### 8. Redis Layer
-* **Files**:
-  * [redis.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/lib/redis.ts): Instantiates client connections.
-* **Keys & Channels**:
-  * Cache Key: `hiveos:graph:${hiveId}` (contains cached graphs, expires in 60s).
-  * Channels: `hiveos:canvas` and `hiveos:activity` (used to broadcast cross-process notifications).
+* **Actual Files**:
+  * [redis.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/lib/redis.ts): Handles connection pool and fallbacks.
+* **Core Mechanisms**:
+  * Redis Adapter (`@socket.io/redis-adapter`): Syncs Socket.io rooms across multi-node servers.
+  * Pub/Sub Channels: `hiveos:canvas` and `hiveos:activity` channels broadcast updates cross-process.
 
 ### 9. GitHub Layer
-* **Files**:
-  * `app/api/webhooks/github/route.ts`: Ingests webhook events from GitHub.
-  * `server/models/GithubEvent.ts`: Stores webhook event details.
+* **Actual Files**:
+  * `app/api/webhooks/github/route.ts`: Webhook receiver endpoint.
+  * `server/models/GithubEvent.ts`: Schema for repository sync information.
 * **Core Functions**:
-  * `POST(req)`: Validates signatures and saves webhook events.
-  * `validateSignature(payload, signature, secret)`: Computes HMAC hashes to verify requests.
+  * `POST(req)`: Validates signatures, stores events, and triggers workspace re-analyses.
+  * `validateSignature(...)`: Computes HMAC-SHA256 signatures to verify request origins.
 
-### 10. Workflow Layer
-* **Files**:
-  * [workflowEngine.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/workflowEngine.ts): Executes trigger evaluations and workflow step loops.
-  * [executionEngine.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/executionEngine.ts): Executes approved plan steps inside transactional sessions.
+### 10. Workflows Layer
+* **Actual Files**:
+  * [workflowEngine.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/workflowEngine.ts): Matches triggers and manages workflow runs.
+  * [executionEngine.ts](file:///c:/Users/mayan/HiveOS/hiveos-app/server/utils/executionEngine.ts): Executes step templates within database transactions.
 * **Core Functions**:
-  * `triggerWorkflowEvent(hiveId, triggerType, context)`: Evaluates triggers and spawns runs.
-  * `executeActionPlan(hiveId, planId, actorId, ...)`: Runs steps (e.g. creating documents, nodes, or edges) inside database transactions.
-  * `validateWorkflowHierarchy(...)`: Validates that workflow runs do not form recursive execution loops.
+  * `triggerWorkflowEvent(hiveId, triggerType, context)`: Evaluates workflow parameters and spawns runs.
+  * `executeActionPlan(...)`: Executes approved actions (create node, modify document) inside database transactions, with rollbacks on failure.
 
 ---
 
-## SECTION 3 — CORE EVENT FLOWS
+## 3. CORE SYSTEM INTERACTION TRACES
 
-### 1. Canvas Modification Synchronization Flow
+### Event 1: Collaborative Node Update
 ```
-User drags node ──> [CanvasBoard.tsx] ──> emits API request (POST /canvas)
-                                                        │
-                                                        ▼
-[Other Users] <── broadcasts ── [SocketServer] <── Redis Pub/Sub (hiveos:canvas)
+[User A moves node] 
+       │
+       ▼ (REST API Write)
+  PATCH /api/hives/[hiveId]/canvas ──> updates coordinates in MongoDB (canvasnodes)
+       │
+       ▼ (Cache & Event Bus)
+  Invalidates Redis graph cache ──> publishes coordinates to Redis channel 'hiveos:canvas'
+       │
+       ▼ (WS Broadcast)
+  Realtime WS Server intercepts Pub/Sub ──> broadcasts 'canvas:node-update' to room
+       │
+       ▼ (State Update)
+  [User B's client] receives event ──> updates React Flow state, visual movement renders
 ```
 
-### 2. Auto-Analysis Loop Flow
+### Event 2: AI Audit and Self-Healing Proposal
 ```
-Graph modification ──> triggers REST api write ──> runAnalysisBackground()
-                                                             │
-                                                             ▼
-Saved snapshots <── MongoDB write <── structured LLM <── LLaMA / NIM API
+Graph changes committed 
+       │
+       ▼ (Background Worker)
+  runAnalysisBackground(hiveId) starts ──> compiles context using unifiedContext.ts
+       │
+       ▼ (Algorithms)
+  DFS detects circular loops ──> findCriticalPath finds longest path
+       │
+       ▼ (Inference)
+  Context sent to NVIDIA NIM ──> LLaMA returns structured risks and gaps JSON
+       │
+       ▼ (Action Proposal)
+  agentActionEngine maps gaps to stubs ──> inserts proposed WorkflowRun in DB
+       │
+       ▼ (Real-time Notify)
+  Socket server emits 'workflow:run-updated' ──> visual alert shows in client UI
 ```
 
 ---
