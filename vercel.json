@@ -1,9 +1,0 @@
-{
-  "buildCommand": "cd hiveos-app && npm install && npm run build",
-  "outputDirectory": "hiveos-app/.next",
-  "installCommand": "echo 'skipping root install'",
-  "framework": "nextjs",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" }
-  ]
-}
