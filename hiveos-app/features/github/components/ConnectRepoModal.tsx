@@ -10,8 +10,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 interface Repository {
   id: number;
@@ -43,13 +43,7 @@ export function ConnectRepoModal({
   const [selectedRepoIndex, setSelectedRepoIndex] = useState<number>(-1);
   const [notConnected, setNotConnected] = useState(false);
 
-  useEffect(() => {
-    if (open) {
-      fetchRepos();
-    }
-  }, [open]);
-
-  async function fetchRepos() {
+  const fetchRepos = useCallback(async () => {
     setLoading(true);
     setError(null);
     setNotConnected(false);
@@ -57,7 +51,7 @@ export function ConnectRepoModal({
     try {
       const res = await fetch(`/api/hives/${hiveId}/github/repos`);
       const payload = await res.json();
-      
+
       if (!res.ok) {
         if (payload.error === "github_not_connected") {
           setNotConnected(true);
@@ -66,14 +60,20 @@ export function ConnectRepoModal({
         }
         return;
       }
-      
+
       setRepos(payload.data || []);
-    } catch (err: any) {
+    } catch {
       setError("An unexpected network error occurred.");
     } finally {
       setLoading(false);
     }
-  }
+  }, [hiveId]);
+
+  useEffect(() => {
+    if (open) {
+      fetchRepos();
+    }
+  }, [open, fetchRepos]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

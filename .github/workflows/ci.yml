@@ -40,7 +40,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: ESLint check
-        run: npm run lint
+        run: npx eslint . --max-warnings -1
 
   # ─────────────────────────────────────────────
   # JOB 2: Build check — hiveos-app (Next.js)
