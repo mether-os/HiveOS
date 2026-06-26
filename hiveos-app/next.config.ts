@@ -11,7 +11,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // ---------------------------------------------------------------------------
-  // Strict mode for React 19 — catches double-render bugs in dev
+  // Strict mode for React 19 — catches double-render bugs in dev (trigger rebuild)
   // ---------------------------------------------------------------------------
   reactStrictMode: true,
 
