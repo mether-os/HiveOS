@@ -61,7 +61,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com",
-              "connect-src 'self' ws://localhost:3002 wss://localhost:3002 http://localhost:3002 https://api.anthropic.com",
+              "connect-src 'self' ws://localhost:3002 wss://localhost:3002 http://localhost:3002 https://mether-llm-proxy.onrender.com wss://mether-llm-proxy.onrender.com https://*.vercel.app wss://*.vercel.app https://api.anthropic.com",
               "worker-src 'self' blob:",
               "frame-ancestors 'none'",
             ].join("; "),
