@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import AgentActionPlan, { type IAgentActionPlan, type IActionStep } from "../models/AgentActionPlan";
 import HiveMindRecommendation from "../models/HiveMindRecommendation";
 import { getProjectContext } from "./unifiedContext";
-import { detectCycles, findCriticalPath, type StructuredRisk, type KnowledgeGap } from "./hiveMindService";
+import { detectCycles, type StructuredRisk, type KnowledgeGap } from "./hiveMindService";
 
 // ---------------------------------------------------------------------------
 // Types
