@@ -1,11 +1,7 @@
 import mongoose from "mongoose";
-import AgentInstance, { type IAgentInstance } from "../models/AgentInstance";
+import AgentInstance from "../models/AgentInstance";
 import Workflow from "../models/Workflow";
 import WorkflowRun, { type IWorkflowRun, type IWorkflowRunStep } from "../models/WorkflowRun";
-import CanvasNode from "../models/CanvasNode";
-import CanvasEdge from "../models/CanvasEdge";
-import Document from "../models/Document";
-import Activity from "../models/Activity";
 import { getProjectContext } from "./unifiedContext";
 import { detectCycles, findCriticalPath } from "./hiveMindService";
 import { calculateWorkflowMetrics } from "./workflowEngine";
