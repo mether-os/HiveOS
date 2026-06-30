@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import AgentActionPlan, { type IAgentActionPlan, type IActionStep } from "../models/AgentActionPlan";
+import AgentActionPlan, { type IAgentActionPlan } from "../models/AgentActionPlan";
 import CanvasNode from "../models/CanvasNode";
 import CanvasEdge from "../models/CanvasEdge";
 import Document from "../models/Document";
