@@ -20,6 +20,7 @@ import { HiveNode } from "./HiveNode";
 import { CanvasMode, NodeCategory } from "../types";
 import { Plus, Settings2, Trash2, X, Play, Milestone, Compass } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const nodeTypes = {
   customNode: HiveNode,
@@ -362,11 +363,12 @@ export function CanvasBoard({ hiveId }: CanvasBoardProps) {
         const errData = await res.json().catch(() => ({}));
         const errMsg = errData.error || res.statusText || "Unknown error";
         console.error("Failed to trigger AI reconfiguration:", errMsg);
-        alert(`Failed to sync with AI companion: ${errMsg}`);
+        toast.error(`AI sync failed: ${errMsg}`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Network error";
       console.error("Failed to trigger AI reconfiguration:", err);
-      alert(`Failed to sync with AI companion: ${err.message || "Network error"}`);
+      toast.error(`AI sync failed: ${msg}`);
     }
   }, [hiveId]);
 
@@ -379,19 +381,12 @@ export function CanvasBoard({ hiveId }: CanvasBoardProps) {
 
     const edgeId = `edge-${params.source}-${params.target}-${Date.now().toString(36)}`;
     const newEdge = {
+      ...BASE_EDGE_STYLE,
       id: edgeId,
       source: params.source,
       target: params.target,
-      type: "smoothstep",
-      animated: true,
       label: "relates_to",
-      labelStyle: { fill: '#94a3b8', fontSize: 10, fontWeight: 700, fontFamily: 'JetBrains Mono' },
-      labelBgPadding: [4, 2] as [number, number],
-      labelBgBorderRadius: 4,
-      labelBgStyle: { fill: '#0b0e14', fillOpacity: 0.85, stroke: '#1e2533', strokeWidth: 1 },
-      style: { stroke: "#334155", strokeWidth: 1.5 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#334155", width: 15, height: 15 },
-      data: { relationType: "relates_to" }
+      data: { relationType: "relates_to" },
     };
 
     setEdges((eds) => addEdge(newEdge, eds));

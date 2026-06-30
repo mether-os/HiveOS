@@ -30,6 +30,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { type ReactNode } from "react";
 import { useEffect } from "react";
 import { RealtimeProvider } from "@/features/realtime/hooks/useSocket";
+import { Toaster } from "sonner";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -70,6 +71,20 @@ export function Providers({ children }: ProvidersProps) {
       <RealtimeProvider>
         {children}
       </RealtimeProvider>
+      {/* Global toast notifications — styled to match HiveOS dark theme */}
+      <Toaster
+        theme="dark"
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: "#0e1117",
+            border: "1px solid #1e2533",
+            color: "#f1f5f9",
+            fontFamily: "var(--font-sans)",
+            fontSize: "13px",
+          },
+        }}
+      />
       {/* DevTools only appear in development, zero-cost in production */}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
