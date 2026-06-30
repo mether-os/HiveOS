@@ -1,10 +1,9 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
-import Workflow, { type IWorkflow, type IWorkflowStep } from "../models/Workflow";
+import Workflow, { type IWorkflowStep } from "../models/Workflow";
 import WorkflowRun, { type IWorkflowRun, type IWorkflowRunStep, type IWorkflowRunMetrics } from "../models/WorkflowRun";
-import AgentActionPlan, { type IAgentActionPlan } from "../models/AgentActionPlan";
+import AgentActionPlan from "../models/AgentActionPlan";
 import CanvasNode from "../models/CanvasNode";
-import CanvasEdge from "../models/CanvasEdge";
 import Document from "../models/Document";
 import IntelligenceNotification from "../models/IntelligenceNotification";
 import { executeActionPlan } from "./executionEngine";
