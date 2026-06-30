@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { getProjectContext, findRelatedEntities, searchKnowledge, getEntityContext } from "./unifiedContext";
+import { getProjectContext } from "./unifiedContext";
 import HiveMindRecommendation from "../models/HiveMindRecommendation";
 import HiveMindMission from "../models/HiveMindMission";
 import HiveMindSnapshot from "../models/HiveMindSnapshot";
