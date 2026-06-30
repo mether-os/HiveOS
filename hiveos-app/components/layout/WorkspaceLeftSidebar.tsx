@@ -67,7 +67,7 @@ export function WorkspaceLeftSidebar({ hiveId }: WorkspaceLeftSidebarProps) {
 
   // Fetch workspace name when dialog is opened
   useEffect(() => {
-    if (!isOpen || !hiveId) return;
+    if (!isOpen || !hiveId || workspaceName) return;
 
     const fetchWorkspaceDetails = async () => {
       try {
