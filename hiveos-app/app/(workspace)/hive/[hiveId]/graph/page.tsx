@@ -159,6 +159,7 @@ export default function GraphExplorerPage() {
   const [timelineIndex, setTimelineIndex] = useState(-1);
   const [isTimelinePlaying, setIsTimelinePlaying] = useState(false);
   const playTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const randomPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
 
   const isTimelineActive = timelineIndex >= 0 && timelineIndex < timelineEvents.length;
 
@@ -343,10 +344,22 @@ export default function GraphExplorerPage() {
 
       const componentColor = componentsMapping[n.id] || null;
 
+      // Stable position to prevent layout thrash on filter/search (BUG-29)
+      let position = n.position;
+      if (!position) {
+        if (!randomPositionsRef.current[n.id]) {
+          randomPositionsRef.current[n.id] = {
+            x: Math.random() * 500,
+            y: Math.random() * 500,
+          };
+        }
+        position = randomPositionsRef.current[n.id];
+      }
+
       return {
         id: n.id,
         type: "explorerNode",
-        position: n.position || { x: Math.random() * 200, y: Math.random() * 200 },
+        position,
         draggable: false,
         data: {
           title: n.title,
