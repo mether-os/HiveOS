@@ -15,6 +15,8 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface TaskNode {
   id: string;
@@ -343,8 +345,9 @@ export default function TasksPage() {
             }
           };
           setTasks((prev) => [...prev, newTask]);
+          toast.success("Task created successfully");
         } else {
-          alert("Failed to create task via REST API");
+          toast.error("Failed to create task");
         }
       } catch (err) {
         console.error("Error creating task via REST API fallback:", err);
@@ -547,6 +550,27 @@ export default function TasksPage() {
         </div>
       </div>
 
+      {/* Empty state — shown when workspace has no tasks yet */}
+      {!loading && tasks.length === 0 && (
+        <EmptyState
+          icon={<Kanban size={32} />}
+          title="No tasks yet"
+          description="Break your project into tasks. Drag them across columns as you make progress."
+          action={{
+            label: "Create First Task",
+            icon: <Plus className="w-4 h-4" />,
+            onClick: () => {
+              setTitle(""); setDescription(""); setPriority("Medium");
+              setAssigneeName(session?.user?.name || "");
+              setAssigneeId(session?.user?.id || "");
+              setDueDate(""); setIsCreateOpen(true);
+            },
+          }}
+        />
+      )}
+
+      {/* Main content — only shown when tasks exist */}
+      {!loading && tasks.length > 0 && (
       <div className="flex-1 p-8 overflow-y-auto space-y-6">
         {/* Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -687,6 +711,7 @@ export default function TasksPage() {
           </div>
         )}
       </div>
+      )} {/* end tasks.length > 0 conditional */}
 
       {/* ------------------------------------------------------------------ */}
       {/* Creation Modal Overlay */}
