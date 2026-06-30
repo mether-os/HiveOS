@@ -69,6 +69,35 @@ function toObjectId(id: string): mongoose.Types.ObjectId | null {
   return new mongoose.Types.ObjectId(id);
 }
 
+/**
+ * Safely serializes a Hive document/lean object for API response and client use.
+ */
+function serializeHive(hive: any): SerializedHive {
+  return {
+    id: hive._id.toString(),
+    name: hive.name,
+    description: hive.description,
+    ownerId: hive.ownerId?.toString() || "",
+    githubRepo: (hive.githubRepo && hive.githubRepo.owner && hive.githubRepo.repo) ? {
+      owner: hive.githubRepo.owner,
+      repo: hive.githubRepo.repo,
+      webhookId: hive.githubRepo.webhookId,
+      connectedAt: hive.githubRepo.connectedAt
+        ? (hive.githubRepo.connectedAt instanceof Date
+          ? hive.githubRepo.connectedAt.toISOString()
+          : new Date(hive.githubRepo.connectedAt).toISOString())
+        : undefined,
+      status: hive.githubRepo.status as "connected" | "disconnected",
+    } : undefined,
+    createdAt: hive.createdAt
+      ? (hive.createdAt instanceof Date ? hive.createdAt : new Date(hive.createdAt)).toISOString()
+      : new Date().toISOString(),
+    updatedAt: hive.updatedAt
+      ? (hive.updatedAt instanceof Date ? hive.updatedAt : new Date(hive.updatedAt)).toISOString()
+      : new Date().toISOString(),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Action: getUserHives
 // Returns all hives owned by a user, newest first
@@ -88,26 +117,7 @@ export async function getUserHives(userId: string): Promise<SerializedHive[]> {
     .lean() // Returns plain objects, faster than full Mongoose documents
     .exec();
 
-  return hives.map((hive) => ({
-    id: hive._id.toString(),
-    name: hive.name,
-    description: hive.description,
-    ownerId: hive.ownerId.toString(),
-    githubRepo: (hive.githubRepo && hive.githubRepo.owner && hive.githubRepo.repo) ? {
-      owner: hive.githubRepo.owner,
-      repo: hive.githubRepo.repo,
-      webhookId: hive.githubRepo.webhookId,
-      webhookSecret: hive.githubRepo.webhookSecret,
-      connectedAt: hive.githubRepo.connectedAt
-        ? (hive.githubRepo.connectedAt instanceof Date
-          ? hive.githubRepo.connectedAt.toISOString()
-          : new Date(hive.githubRepo.connectedAt).toISOString())
-        : undefined,
-      status: hive.githubRepo.status as "connected" | "disconnected",
-    } : undefined,
-    createdAt: hive.createdAt.toISOString(),
-    updatedAt: hive.updatedAt.toISOString(),
-  }));
+  return hives.map((hive) => serializeHive(hive));
 }
 
 // ---------------------------------------------------------------------------
@@ -129,26 +139,7 @@ export async function getHiveById(
   const hive = await Hive.findOne({ _id: id, ownerId }).lean().exec();
   if (!hive) return null;
 
-  return {
-    id: hive._id.toString(),
-    name: hive.name,
-    description: hive.description,
-    ownerId: hive.ownerId.toString(),
-    githubRepo: (hive.githubRepo && hive.githubRepo.owner && hive.githubRepo.repo) ? {
-      owner: hive.githubRepo.owner,
-      repo: hive.githubRepo.repo,
-      webhookId: hive.githubRepo.webhookId,
-      webhookSecret: hive.githubRepo.webhookSecret,
-      connectedAt: hive.githubRepo.connectedAt
-        ? (hive.githubRepo.connectedAt instanceof Date
-          ? hive.githubRepo.connectedAt.toISOString()
-          : new Date(hive.githubRepo.connectedAt).toISOString())
-        : undefined,
-      status: hive.githubRepo.status as "connected" | "disconnected",
-    } : undefined,
-    createdAt: hive.createdAt.toISOString(),
-    updatedAt: hive.updatedAt.toISOString(),
-  };
+  return serializeHive(hive);
 }
 
 // ---------------------------------------------------------------------------
@@ -172,26 +163,7 @@ export async function createHive(
     ownerId,
   });
 
-  return {
-    id: hive._id.toString(),
-    name: hive.name,
-    description: hive.description,
-    ownerId: hive.ownerId.toString(),
-    githubRepo: (hive.githubRepo && hive.githubRepo.owner && hive.githubRepo.repo) ? {
-      owner: hive.githubRepo.owner,
-      repo: hive.githubRepo.repo,
-      webhookId: hive.githubRepo.webhookId,
-      webhookSecret: hive.githubRepo.webhookSecret,
-      connectedAt: hive.githubRepo.connectedAt
-        ? (hive.githubRepo.connectedAt instanceof Date
-          ? hive.githubRepo.connectedAt.toISOString()
-          : new Date(hive.githubRepo.connectedAt).toISOString())
-        : undefined,
-      status: hive.githubRepo.status as "connected" | "disconnected",
-    } : undefined,
-    createdAt: hive.createdAt.toISOString(),
-    updatedAt: hive.updatedAt.toISOString(),
-  };
+  return serializeHive(hive);
 }
 
 // ---------------------------------------------------------------------------
