@@ -70,7 +70,6 @@ export interface SerializedHive {
     owner: string;
     repo: string;
     webhookId?: string;
-    webhookSecret?: string;
     connectedAt?: string;
     status: "connected" | "disconnected";
   };
@@ -114,7 +113,6 @@ const HiveSchema = new Schema<IHive>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: [true, "Owner is required"],
-      index: true, // Critical: enables fast queries for "get all hives by user"
     },
 
     githubRepo: {
@@ -141,10 +139,13 @@ const HiveSchema = new Schema<IHive>(
         ret.ownerId = ret.ownerId.toString();
         ret.createdAt = ret.createdAt.toISOString();
         ret.updatedAt = ret.updatedAt.toISOString();
-        if (ret.githubRepo && ret.githubRepo.connectedAt) {
-          ret.githubRepo.connectedAt = ret.githubRepo.connectedAt instanceof Date 
-            ? ret.githubRepo.connectedAt.toISOString() 
-            : new Date(ret.githubRepo.connectedAt).toISOString();
+        if (ret.githubRepo) {
+          delete ret.githubRepo.webhookSecret;
+          if (ret.githubRepo.connectedAt) {
+            ret.githubRepo.connectedAt = ret.githubRepo.connectedAt instanceof Date 
+              ? ret.githubRepo.connectedAt.toISOString() 
+              : new Date(ret.githubRepo.connectedAt).toISOString();
+          }
         }
         delete ret._id;
         delete ret.__v;
