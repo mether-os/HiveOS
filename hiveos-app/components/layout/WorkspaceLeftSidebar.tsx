@@ -350,6 +350,7 @@ export function WorkspaceLeftSidebar({ hiveId }: WorkspaceLeftSidebarProps) {
               </form>
             </div>
           </div>
+        </DialogContent>
       </Dialog>
 
       {/* Keyboard Shortcuts Modal */}
