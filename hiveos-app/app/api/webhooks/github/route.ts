@@ -170,129 +170,137 @@ export const POST = wrapApiRoute(async (request, context, reqLogger) => {
     return NextResponse.json({ error: "Unauthorized: Invalid signature" }, { status: 401 });
   }
 
+  // Enforce idempotency check globally (deliveryId is unique per GitHub delivery)
+  // We insert at the start to act as an atomic lock
+  try {
+    await ProcessedWebhookEvent.create({ deliveryId });
+  } catch (err: any) {
+    if (err.code === 11000) {
+      reqLogger.info(`Event ${deliveryId} already processed (idempotency check matched)`);
+      return NextResponse.json({ message: "Event already processed" }, { status: 200 });
+    }
+    throw err;
+  }
+
   let processedCount = 0;
 
-  for (const hive of hives) {
-    // Check if matching secret for this specific hive passes (since different hives could theoretically use different secrets)
-    const secret = hive.githubRepo?.webhookSecret;
-    if (secret && !verifySignature(rawBody, secret, signatureHeader)) {
-      continue;
-    }
+  try {
+    for (const hive of hives) {
+      // Check if matching secret for this specific hive passes (since different hives could theoretically use different secrets)
+      const secret = hive.githubRepo?.webhookSecret;
+      if (secret && !verifySignature(rawBody, secret, signatureHeader)) {
+        continue;
+      }
 
-    // Enforce idempotency check globally (deliveryId is unique per GitHub delivery)
-    const alreadyProcessed = await ProcessedWebhookEvent.findOne({ deliveryId });
-    if (alreadyProcessed) {
-      reqLogger.info(`Event ${deliveryId} already processed (idempotency check matched)`);
-      continue;
-    }
-
-    // Save raw event log
-    await GithubEvent.create({
-      deliveryId,
-      hiveId: hive._id,
-      eventType,
-      action: payload.action || null,
-      payload,
-    });
-
-    // Parse details into a human-readable activity format
-    let type = `github_${eventType}`;
-    let title = `GitHub event: ${eventType}`;
-    let description = "";
-    const actorName = payload.sender?.login || "github-user";
-    const actorAvatar = payload.sender?.avatar_url || "";
-
-    if (eventType === "push") {
-      const ref = payload.ref || "";
-      const branch = ref.replace("refs/heads/", "");
-      const commits = payload.commits || [];
-      type = "github_commit";
-      title = `Pushed to ${branch}`;
-      description = commits.length > 0 
-        ? `${commits.length} commit(s): "${commits[0].message}"` 
-        : "Pushed changes";
-    } else if (eventType === "pull_request") {
-      const action = payload.action; // opened, closed, reopened, edited, etc.
-      const pr = payload.pull_request || {};
-      const isMerged = action === "closed" && pr.merged === true;
-      
-      type = isMerged ? "github_pr_merge" : action === "closed" ? "github_pr_close" : "github_pr_open";
-      title = isMerged 
-        ? `Merged PR #${pr.number}` 
-        : `${action.charAt(0).toUpperCase() + action.slice(1)} PR #${pr.number}`;
-      description = pr.title || "";
-    } else if (eventType === "issues") {
-      const action = payload.action; // opened, closed, reopened, etc.
-      const issue = payload.issue || {};
-      
-      type = action === "opened" ? "github_issue_open" : action === "closed" ? "github_issue_close" : `github_issue_${action}`;
-      title = `${action.charAt(0).toUpperCase() + action.slice(1)} Issue #${issue.number}`;
-      description = issue.title || "";
-    } else if (eventType === "issue_comment") {
-      const action = payload.action;
-      const comment = payload.comment || {};
-      const issue = payload.issue || {};
-      
-      type = "github_comment_create";
-      title = `Comment on Issue #${issue.number}`;
-      description = comment.body || "";
-    }
-
-    // Scan payload text to find heuristics-based node links
-    let textToScan = `${title} ${description}`;
-    if (eventType === "push") {
-      const commits = payload.commits || [];
-      textToScan += " " + commits.map((c: any) => c.message).join(" ");
-    } else if (eventType === "pull_request") {
-      textToScan += " " + (payload.pull_request?.body || "");
-    } else if (eventType === "issues") {
-      textToScan += " " + (payload.issue?.body || "");
-    } else if (eventType === "issue_comment") {
-      textToScan += " " + (payload.comment?.body || "");
-    }
-
-    const graphLinks = await findGraphLinks(hive._id.toString(), textToScan);
-
-    // Save formatted activity
-    const activity = await Activity.create({
-      hiveId: hive._id,
-      type,
-      title,
-      description,
-      actorName,
-      actorAvatar,
-      graphLinks,
-      timestamp: new Date(),
-    });
-
-    // Index activity in unified search
-    await indexActivity(activity._id);
-
-    // Log delivery ID to ProcessedWebhookEvent to prevent duplicate processing
-    await ProcessedWebhookEvent.create({ deliveryId });
-
-    // Publish activity to Redis Pub/Sub
-    if (redis) {
-      const message = JSON.stringify({
-        hiveId: hive._id.toString(),
-        activity: {
-          id: activity._id.toString(),
-          hiveId: hive._id.toString(),
-          type,
-          title,
-          description,
-          actorName,
-          actorAvatar,
-          graphLinks,
-          timestamp: activity.timestamp.toISOString(),
-        },
+      // Save raw event log
+      await GithubEvent.create({
+        deliveryId,
+        hiveId: hive._id,
+        eventType,
+        action: payload.action || null,
+        payload,
       });
-      
-      await redis.publish("hiveos:activity", message);
-      reqLogger.info(`Published activity event to Redis for hive ${hive._id}`);
-    }
 
-    processedCount++;
+      // Parse details into a human-readable activity format
+      let type = `github_${eventType}`;
+      let title = `GitHub event: ${eventType}`;
+      let description = "";
+      const actorName = payload.sender?.login || "github-user";
+      const actorAvatar = payload.sender?.avatar_url || "";
+
+      if (eventType === "push") {
+        const ref = payload.ref || "";
+        const branch = ref.replace("refs/heads/", "");
+        const commits = payload.commits || [];
+        type = "github_commit";
+        title = `Pushed to ${branch}`;
+        description = commits.length > 0 
+          ? `${commits.length} commit(s): "${commits[0].message}"` 
+          : "Pushed changes";
+      } else if (eventType === "pull_request") {
+        const action = payload.action; // opened, closed, reopened, edited, etc.
+        const pr = payload.pull_request || {};
+        const isMerged = action === "closed" && pr.merged === true;
+        
+        type = isMerged ? "github_pr_merge" : action === "closed" ? "github_pr_close" : "github_pr_open";
+        title = isMerged 
+          ? `Merged PR #${pr.number}` 
+          : `${action.charAt(0).toUpperCase() + action.slice(1)} PR #${pr.number}`;
+        description = pr.title || "";
+      } else if (eventType === "issues") {
+        const action = payload.action; // opened, closed, reopened, etc.
+        const issue = payload.issue || {};
+        
+        type = action === "opened" ? "github_issue_open" : action === "closed" ? "github_issue_close" : `github_issue_${action}`;
+        title = `${action.charAt(0).toUpperCase() + action.slice(1)} Issue #${issue.number}`;
+        description = issue.title || "";
+      } else if (eventType === "issue_comment") {
+        const action = payload.action;
+        const comment = payload.comment || {};
+        const issue = payload.issue || {};
+        
+        type = "github_comment_create";
+        title = `Comment on Issue #${issue.number}`;
+        description = comment.body || "";
+      }
+
+      // Scan payload text to find heuristics-based node links
+      let textToScan = `${title} ${description}`;
+      if (eventType === "push") {
+        const commits = payload.commits || [];
+        textToScan += " " + commits.map((c: any) => c.message).join(" ");
+      } else if (eventType === "pull_request") {
+        textToScan += " " + (payload.pull_request?.body || "");
+      } else if (eventType === "issues") {
+        textToScan += " " + (payload.issue?.body || "");
+      } else if (eventType === "issue_comment") {
+        textToScan += " " + (payload.comment?.body || "");
+      }
+
+      const graphLinks = await findGraphLinks(hive._id.toString(), textToScan);
+
+      // Save formatted activity
+      const activity = await Activity.create({
+        hiveId: hive._id,
+        type,
+        title,
+        description,
+        actorName,
+        actorAvatar,
+        graphLinks,
+        timestamp: new Date(),
+      });
+
+      // Index activity in unified search
+      await indexActivity(activity._id);
+
+      // Publish activity to Redis Pub/Sub
+      if (redis) {
+        const message = JSON.stringify({
+          hiveId: hive._id.toString(),
+          activity: {
+            id: activity._id.toString(),
+            hiveId: hive._id.toString(),
+            type,
+            title,
+            description,
+            actorName,
+            actorAvatar,
+            graphLinks,
+            timestamp: activity.timestamp.toISOString(),
+          },
+        });
+        
+        await redis.publish("hiveos:activity", message);
+        reqLogger.info(`Published activity event to Redis for hive ${hive._id}`);
+      }
+
+      processedCount++;
+    }
+  } catch (err) {
+    // Clean up idempotency record so GitHub can retry the delivery if it failed
+    await ProcessedWebhookEvent.deleteOne({ deliveryId });
+    throw err;
   }
 
   return NextResponse.json({ 
