@@ -2,15 +2,36 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import { runHiveMindAnalysis, runAnalysisBackground } from "@/server/utils/hiveMindService";
 import HiveMindSnapshot from "@/server/models/HiveMindSnapshot";
+import Hive from "@/server/models/Hive";
 import { wrapApiRoute } from "@/lib/apiWrapper";
 import mongoose from "mongoose";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export const GET = wrapApiRoute(async (request, { params }, reqLogger) => {
   await connectDB();
   const { hiveId } = await params;
 
-  if (!hiveId) {
-    return NextResponse.json({ error: "Missing hiveId" }, { status: 400 });
+  if (!hiveId || !mongoose.Types.ObjectId.isValid(hiveId)) {
+    return NextResponse.json({ error: "Invalid or missing hiveId" }, { status: 400 });
+  }
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Verify ownership
+  const hive = await Hive.findOne({
+    _id: new mongoose.Types.ObjectId(hiveId),
+    ownerId: new mongoose.Types.ObjectId(session.user.id),
+  });
+
+  if (!hive) {
+    return NextResponse.json({ error: "Hive not found or unauthorized" }, { status: 404 });
   }
 
   const url = new URL(request.url);
