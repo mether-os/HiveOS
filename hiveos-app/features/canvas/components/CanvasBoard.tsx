@@ -70,6 +70,36 @@ const BASE_EDGE_STYLE = {
   style: { stroke: "#334155", strokeWidth: 1.5 },
   markerEnd: { type: MarkerType.ArrowClosed, color: "#334155", width: 15, height: 15 },
 } as const;
+
+// DUP-1: Single node-shape mapper — previously copy-pasted 3× inside CanvasBoard
+function mapRawNode(n: RawNode) {
+  return {
+    id: n.id,
+    type: "customNode" as const,
+    position: n.position,
+    data: {
+      title: n.title,
+      description: n.description,
+      category: n.category,
+      tags: n.tags,
+      createdBy: n.createdBy,
+      ...n.data,
+    },
+  };
+}
+
+// DUP-2: Single edge-shape mapper — previously copy-pasted 3× inside CanvasBoard
+function mapRawEdge(e: RawEdge) {
+  return {
+    ...BASE_EDGE_STYLE,
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    label: e.relationType || "relates_to",
+    data: { relationType: e.relationType || "relates_to" },
+  };
+}
+
 export function CanvasBoard({ hiveId }: CanvasBoardProps) {
   const { socket, status } = useSocket();
   const { activeMode, setActiveMode } = useCanvasStore();
@@ -131,23 +161,8 @@ export function CanvasBoard({ hiveId }: CanvasBoardProps) {
             }
           }));
 
-          const fetchedEdges = result.data.edges.map((e: RawEdge) => ({
-  ...BASE_EDGE_STYLE,
+          const fetchedEdges = result.data.edges.map((e: RawEdge) => mapRawEdge(e));
 
-            id: e.id,
-            source: e.source,
-            target: e.target,
-            type: "smoothstep",
-            animated: true,
-            label: e.relationType || "relates_to",
-            labelStyle: { fill: '#94a3b8', fontSize: 10, fontWeight: 700, fontFamily: 'JetBrains Mono' },
-            labelBgPadding: [4, 2],
-            labelBgBorderRadius: 4,
-            labelBgStyle: { fill: '#0b0e14', fillOpacity: 0.85, stroke: '#1e2533', strokeWidth: 1 },
-            style: { stroke: "#334155", strokeWidth: 1.5 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: "#334155", width: 15, height: 15 },
-            data: { relationType: e.relationType || "relates_to" }
-          }));
 
           setNodes(fetchedNodes);
           setEdges(fetchedEdges);
@@ -172,34 +187,9 @@ export function CanvasBoard({ hiveId }: CanvasBoardProps) {
     // RealtimeWorkspaceController dispatches this event on every (re)connect.
     const handleResync = (e: CustomEvent) => {
       const { nodes: rawNodes, edges: rawEdges } = e.detail;
-      const remappedNodes = (rawNodes || []).map((n: RawNode) => ({
-        id: n.id,
-        type: "customNode",
-        position: n.position,
-        data: {
-          title: n.title,
-          description: n.description,
-          category: n.category,
-          tags: n.tags,
-          createdBy: n.createdBy,
-          ...n.data
-        }
-      }));
-      const remappedEdges = (rawEdges || []).map((e: any) => ({
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        type: "smoothstep",
-        animated: true,
-        label: e.relationType || "relates_to",
-        labelStyle: { fill: '#94a3b8', fontSize: 10, fontWeight: 700, fontFamily: 'JetBrains Mono' },
-        labelBgPadding: [4, 2] as [number, number],
-        labelBgBorderRadius: 4,
-        labelBgStyle: { fill: '#0b0e14', fillOpacity: 0.85, stroke: '#1e2533', strokeWidth: 1 },
-        style: { stroke: "#334155", strokeWidth: 1.5 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: "#334155", width: 15, height: 15 },
-        data: { relationType: e.relationType || "relates_to" }
-      }));
+      const remappedNodes = (rawNodes || []).map((n: RawNode) => mapRawNode(n));
+      const remappedEdges = (rawEdges || []).map((e: RawEdge) => mapRawEdge(e));
+
       setNodes(remappedNodes);
       setEdges(remappedEdges);
     };
