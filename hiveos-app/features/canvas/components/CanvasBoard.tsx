@@ -176,7 +176,7 @@ export function CanvasBoard({ hiveId }: CanvasBoardProps) {
     }
 
     loadCanvas();
-  }, [hiveId, status, setNodes, setEdges]);
+  }, [hiveId, setNodes, setEdges]);
 
   // -------------------------------------------------------------------------
   // Socket listeners for Realtime Synchronization
