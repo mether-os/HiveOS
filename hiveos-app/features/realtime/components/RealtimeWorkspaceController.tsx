@@ -40,16 +40,16 @@ export const RealtimeWorkspaceController: React.FC<RealtimeWorkspaceControllerPr
   useEffect(() => {
     if (!socket || status !== "connected") return;
 
-    console.log(`[Realtime Controller] Socket active, joining workspace room: ${hiveId}`);
     socket.emit("workspace:join", { workspaceId: hiveId });
+
 
     // RT-3: resync canvas state on every connect (covers both initial connect
     // and reconnects after a network drop — status flips to "connected" both times)
     resyncCanvasState();
 
     return () => {
-      console.log(`[Realtime Controller] Leaving workspace room: ${hiveId}`);
       socket.emit("workspace:leave");
+
       clearWorkspacePresence();
     };
   }, [socket, status, hiveId, clearWorkspacePresence, resyncCanvasState]);

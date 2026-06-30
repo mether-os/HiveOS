@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useSocket } from "@/features/realtime/hooks/useSocket";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -12,14 +12,7 @@ import {
   X,
   Calendar,
   User,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
-  AlertTriangle,
-  Play,
   Settings,
-  CircleDot,
-  UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +40,6 @@ const COLUMNS = [
 
 export default function TasksPage() {
   const params = useParams();
-  const router = useRouter();
   const hiveId = params?.hiveId as string;
   const { data: session } = useSession();
   const { socket, status: socketStatus } = useSocket();
