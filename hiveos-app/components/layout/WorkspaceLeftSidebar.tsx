@@ -27,6 +27,7 @@ import {
   Kanban,
   Setting2,
   Warning2,
+  Keyboard,
 } from "iconsax-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -64,6 +65,53 @@ export function WorkspaceLeftSidebar({ hiveId }: WorkspaceLeftSidebarProps) {
   const [confirmName, setConfirmName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Keyboard shortcuts state
+  const [isShortcutOpen, setIsShortcutOpen] = useState(false);
+
+  // Global keydown handler for hotkeys (FEAT-003)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is currently typing in input/textarea/contenteditable
+      const activeEl = document.activeElement;
+      if (
+        activeEl &&
+        (activeEl.tagName === "INPUT" ||
+          activeEl.tagName === "TEXTAREA" ||
+          activeEl.getAttribute("contenteditable") === "true")
+      ) {
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+
+      if (e.key === "?") {
+        e.preventDefault();
+        setIsShortcutOpen((prev) => !prev);
+      } else if (e.key === "Escape") {
+        setIsShortcutOpen(false);
+        setIsOpen(false);
+      } else if (key === "t") {
+        e.preventDefault();
+        router.push(`/hive/${hiveId}/tasks`);
+      } else if (key === "c") {
+        e.preventDefault();
+        router.push(`/hive/${hiveId}/canvas`);
+      } else if (key === "d") {
+        e.preventDefault();
+        router.push(`/hive/${hiveId}/documents`);
+      } else if (key === "a") {
+        e.preventDefault();
+        router.push(`/hive/${hiveId}/activity`);
+      } else if (key === "i") {
+        e.preventDefault();
+        router.push(`/hive/${hiveId}/intelligence`);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [hiveId, router]);
 
   // Fetch workspace name when dialog is opened
   useEffect(() => {
@@ -196,8 +244,20 @@ export function WorkspaceLeftSidebar({ hiveId }: WorkspaceLeftSidebarProps) {
           })}
         </motion.nav>
 
-        {/* Bottom: Settings */}
-        <div className="mt-auto">
+        {/* Bottom: Shortcuts & Settings */}
+        <div className="mt-auto flex flex-col gap-1">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
+            <button
+              title="Keyboard Shortcuts (?)"
+              aria-label="Keyboard Shortcuts"
+              onClick={() => {
+                setIsShortcutOpen(true);
+              }}
+              className="w-12 h-12 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-200 active:scale-[0.95]"
+            >
+              <Keyboard size="20" variant="Linear" />
+            </button>
+          </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.5 }}>
             <button
               title="Settings"
@@ -290,6 +350,63 @@ export function WorkspaceLeftSidebar({ hiveId }: WorkspaceLeftSidebarProps) {
               </form>
             </div>
           </div>
+      </Dialog>
+
+      {/* Keyboard Shortcuts Modal */}
+      <Dialog open={isShortcutOpen} onOpenChange={setIsShortcutOpen}>
+        <DialogContent className="bg-popover border border-border text-foreground max-w-sm rounded-2xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-extrabold text-foreground uppercase tracking-wider font-mono flex items-center gap-2">
+              <Keyboard size="20" className="text-primary" />
+              <span>Keyboard Shortcuts</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground font-mono">
+              Quickly navigate HiveOS with hotkeys.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 my-2 text-xs font-mono">
+            <div className="flex justify-between items-center py-1.5 border-b border-border/55">
+              <span className="text-muted-foreground">Shortcuts Helper</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground font-bold text-[10px]">?</kbd>
+            </div>
+            <div className="flex justify-between items-center py-1.5 border-b border-border/55">
+              <span className="text-muted-foreground">Close Dialogs</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground font-bold text-[10px]">ESC</kbd>
+            </div>
+            <div className="flex justify-between items-center py-1.5 border-b border-border/55">
+              <span className="text-muted-foreground">Go to Canvas</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground font-bold text-[10px]">C</kbd>
+            </div>
+            <div className="flex justify-between items-center py-1.5 border-b border-border/55">
+              <span className="text-muted-foreground">Go to Tasks</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground font-bold text-[10px]">T</kbd>
+            </div>
+            <div className="flex justify-between items-center py-1.5 border-b border-border/55">
+              <span className="text-muted-foreground">Go to Docs</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground font-bold text-[10px]">D</kbd>
+            </div>
+            <div className="flex justify-between items-center py-1.5 border-b border-border/55">
+              <span className="text-muted-foreground">Go to Activity</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground font-bold text-[10px]">A</kbd>
+            </div>
+            <div className="flex justify-between items-center py-1.5">
+              <span className="text-muted-foreground">Go to Intelligence</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground font-bold text-[10px]">I</kbd>
+            </div>
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="w-full text-[10px] uppercase font-bold tracking-wider font-mono h-9 rounded-xl"
+              onClick={() => setIsShortcutOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
