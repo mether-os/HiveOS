@@ -51,12 +51,12 @@ export function WorkspaceTopBar({ hiveId }: WorkspaceTopBarProps) {
   const workspaceMembers = usePresenceStore((state) => state.workspaceMembers);
   const { status: socketStatus } = useSocket();
 
-  const connectionConfig = {
+  const connectionConfig = (({
     connected:    { color: "bg-emerald-500", pulse: false, label: "Live" },
     connecting:   { color: "bg-amber-500",  pulse: true,  label: "Connecting" },
     reconnecting: { color: "bg-amber-500",  pulse: true,  label: "Reconnecting" },
     disconnected: { color: "bg-rose-500",   pulse: false, label: "Offline" },
-  }[socketStatus] ?? { color: "bg-slate-500", pulse: false, label: "Unknown" };
+  } as Record<string, { color: string; pulse: boolean; label: string }>)[socketStatus]) ?? { color: "bg-slate-500", pulse: false, label: "Unknown" };
 
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
