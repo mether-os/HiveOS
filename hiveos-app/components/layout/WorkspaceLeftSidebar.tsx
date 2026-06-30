@@ -281,7 +281,7 @@ export function WorkspaceLeftSidebar({ hiveId }: WorkspaceLeftSidebarProps) {
                     type="submit"
                     variant="destructive"
                     size="sm"
-                    disabled={confirmName !== workspaceName || isDeleting}
+                    disabled={!workspaceName || confirmName !== workspaceName || isDeleting}
                     className="bg-destructive hover:bg-destructive/80 text-white text-[10px] uppercase font-bold tracking-wider font-mono h-9 rounded-xl disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {isDeleting ? "Deleting Workspace..." : "Delete Workspace"}
