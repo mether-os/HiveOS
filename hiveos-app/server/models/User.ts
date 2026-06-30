@@ -114,11 +114,7 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-// ---------------------------------------------------------------------------
-// Indexes
-// ---------------------------------------------------------------------------
-// Email index for lookups during auth
-UserSchema.index({ email: 1 }, { unique: true });
+// Email index for lookups during auth is already defined inline on the email field.
 
 // ---------------------------------------------------------------------------
 // Model Registration — handles Next.js hot-reload
