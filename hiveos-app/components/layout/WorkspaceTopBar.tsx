@@ -30,6 +30,7 @@ import { usePathname } from "next/navigation";
 
 import { usePresenceStore } from "@/features/realtime/hooks/usePresence";
 import { PresenceAvatar } from "@/features/realtime/components/PresenceAvatar";
+import { useSocket } from "@/features/realtime/hooks/useSocket";
 
 interface WorkspaceTopBarProps {
   hiveId: string;
@@ -48,6 +49,14 @@ export function WorkspaceTopBar({ hiveId }: WorkspaceTopBarProps) {
   const { data: hive } = useHive(hiveId);
   const { user } = useSession();
   const workspaceMembers = usePresenceStore((state) => state.workspaceMembers);
+  const { status: socketStatus } = useSocket();
+
+  const connectionConfig = {
+    connected:    { color: "bg-emerald-500", pulse: false, label: "Live" },
+    connecting:   { color: "bg-amber-500",  pulse: true,  label: "Connecting" },
+    reconnecting: { color: "bg-amber-500",  pulse: true,  label: "Reconnecting" },
+    disconnected: { color: "bg-rose-500",   pulse: false, label: "Offline" },
+  }[socketStatus] ?? { color: "bg-slate-500", pulse: false, label: "Unknown" };
 
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -121,6 +130,25 @@ export function WorkspaceTopBar({ hiveId }: WorkspaceTopBarProps) {
       {/* Right: Actions + Avatar */}
       {/* ------------------------------------------------------------------ */}
       <div className="flex items-center gap-2">
+        {/* Connection status indicator */}
+        <div
+          className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-secondary/60 border border-border text-xs font-medium text-muted-foreground"
+          title={`WebSocket: ${socketStatus}`}
+          aria-label={`Connection status: ${connectionConfig.label}`}
+        >
+          <span
+            className={cn(
+              "w-1.5 h-1.5 rounded-full",
+              connectionConfig.color,
+              connectionConfig.pulse && "animate-pulse"
+            )}
+            aria-hidden="true"
+          />
+          <span className="text-[10px] font-semibold uppercase tracking-wide">
+            {connectionConfig.label}
+          </span>
+        </div>
+
         {/* Presence avatars stack */}
         <div className="flex -space-x-2 mr-3 items-center" aria-label="Active members">
           {workspaceMembers.map((member) => (
