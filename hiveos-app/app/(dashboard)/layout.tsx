@@ -25,7 +25,7 @@ export default function DashboardLayout({
       <DashboardSidebar />
 
       {/* Main content — offset for top bar (64px) and sidebar (256px) */}
-      <main className="pt-16 md:ml-64 min-h-screen bg-background">
+      <main className="pt-16 md:pl-64 min-h-screen bg-background">
         {children}
       </main>
     </div>

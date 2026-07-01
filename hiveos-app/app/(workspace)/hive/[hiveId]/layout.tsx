@@ -50,7 +50,7 @@ export default async function WorkspaceLayout({
       {/* Fixed top bar with tab navigation */}
       <WorkspaceTopBar hiveId={hiveId} />
 
-      <main className="flex h-screen pt-16 ml-16 md:mr-80">
+      <main className="flex h-screen pt-16 pl-16 md:pr-80">
         {/* Left icon-only sidebar (64px) */}
         <WorkspaceLeftSidebar hiveId={hiveId} />
 
